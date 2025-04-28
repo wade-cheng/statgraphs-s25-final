@@ -11,8 +11,13 @@ authors:
   - name: Leo Yao
 ---
 
-```{r, include=FALSE}
+```{r}
 library(tidyverse)
+library(viridis)
+```
+
+
+```{r, include=FALSE}
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
 lockBinding("baseball", globalenv()) # make baseball immutable
 ```
@@ -79,6 +84,22 @@ Home runs appear in a select portion of angles.
 ### Hit location
 
 Home runs are consistently hit in specific locations.
+
+```{r}
+baseball |>
+  ggplot(aes(x = plate_x, y = plate_z)) +
+  stat_density2d(aes(fill = after_stat(level)), geom = "polygon") + 
+  facet_grid(. ~ fct_recode(factor(is_home_run), "Home Run" = "1", "Not Home Run" = "0")) + 
+  labs(title = "Contour Plot of Plate Positions", x = "plate_x (feet)", y = "plate_z (feet)", 
+       caption = "Note: red line is middle of plate") +
+  geom_vline(xintercept = 0, color = "red", size = 1) + 
+  scale_fill_viridis(name = "Density Level") + 
+  theme_bw()
+    
+```
+
+
+
 
 ## Discussion
 
