@@ -11,6 +11,11 @@ authors:
   - name: Leo Yao
 ---
 
+```{r}
+library(tidyverse)
+baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
+```
+
 ## Introduction
 
 Yap yap yap. Describe/contextualize the data.
