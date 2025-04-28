@@ -2,6 +2,7 @@
 title: "Baseball Analysis"
 format: html
 output-file: "index.html"
+bibliography: sources.bib
 authors:
 # https://quarto.org/docs/journals/authors.html#author-schema
 # if you want to be fancy with it
@@ -9,6 +10,10 @@ authors:
   - name: Wade Cheng 
   - name: Jaihao Wu
   - name: Leo Yao
+# these can be enabled to stop running code chunks, which is helpful if you just
+# want to test out content without needing to compile everything every re-render
+# execute:
+#   eval: false
 ---
 
 ```{r, include=FALSE}
@@ -24,9 +29,56 @@ lockBinding("baseball", globalenv()) # make baseball immutable
 
 ## Introduction
 
-Yap yap yap. Describe/contextualize the data.
+Baseball, the great American pastime, makes over ten billion dollars year over 
+year [@cohen_2024_mlb], draws millions to stadiums across the nation 
+[@attendence_2023], and is played recreationally at parks and schools every
+single fortnite, or something. After too many times malding at the TV over
+terrible plays or inscrutable ball trajectories, we decided it would be 
+interesting to pick apart some data to reveal more objective insights into this
+popular game.
 
-Describe the main research questions of the project.
+Our dataset [@jcraggy_2020_baseball] comes from a Kaggle model-creating 
+competition to predict home runs. It has 46,244 recordings that represent each
+batted ball from the 2020 MLB season (which was abbreviated due to COVID---60
+games were played instead of the usual 162). The dataset did include postseason
+games. 
+
+Each recording had twenty-five variables. We analyzed the subset below:
+
+**TODO: bold variables you use!**
+**This will help us remove items we didn't use, later**
+
+- bip_id: unique identifier of ball in play
+- game_date: date of game (YYYY-MM-DD)
+- home_team: home team abbreviation
+- away_team: away team abbreviation
+- batter_team: batter's team abbreviation
+- batter_name: batter's name
+- pitcher_name: pitcher's name
+- batter_id: batter's unique identifier
+- pitcher_id: pitcher's unique identifier
+- **is_batter_lefty: binary encoding of left-handed batters**
+- **is_pitcher_lefty: binary encoding of left-handed pitchers**
+- bb_type: batted ball type classification
+- **bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)**
+- pitch_name: name of pitch type thrown
+- park: unique identifier of park venue
+- inning: inning number within game
+- outs_when_up: current number of outs
+- balls: current number of balls
+- strikes: current number of strikes
+- plate_x: ball position left(-) or right(+) of center plate (feet)
+- plate_z: ball position above home plate (feet)
+- pitch_mph: speed of pitched ball (miles per hour)
+- launch_speed: speed of ball leaving the bat (miles per hour)
+- launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)
+- is_home_run: binary encoding of home runs
+
+<!-- NOTE: feel free to change "special focus" if you change your main variable -->
+
+With these variables, we aimed to investigate anything that might help a team
+win a game of baseball, with special focus on ball bearing, inning number, launch
+angle, and hit location.
 
 ## Results
 
