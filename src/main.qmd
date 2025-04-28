@@ -81,6 +81,49 @@ Inning affects pitching and batting gameplay.
 
 Home runs appear in a select portion of angles.
 
+```{r}
+pitch_data <- baseball |> 
+  filter(!is.na(launch_angle))
+
+home_run_medians <- pitch_data |>
+  filter(is_home_run == 1) |>
+  summarise(
+    median_launch_angle = median(launch_angle, na.rm = TRUE),
+    median_pitch_speed = median(pitch_mph, na.rm = TRUE)
+  )
+
+ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_home_run))) +
+  geom_point(alpha = 0.4, size = 1.5) +
+  scale_color_manual(values = c("0" = "gray", "1" = "red"), 
+                     labels = c("No", "Yes")) +
+  geom_vline(xintercept = home_run_medians$median_launch_angle, 
+             color = "orange", linetype = "solid") +
+  geom_hline(yintercept = home_run_medians$median_pitch_speed, 
+             color = "blue", linetype = "solid") + 
+  annotate("text", 
+           x = home_run_medians$median_launch_angle + 2,
+           y = max(pitch_data$pitch_mph),
+           label = paste("Median Launch Angle:", round(home_run_medians$median_launch_angle, 2)), 
+           color = "orange", hjust = 0) + 
+  annotate("text", 
+           x = min(pitch_data$launch_angle, na.rm = TRUE) + 15,
+           y = home_run_medians$median_pitch_speed + 1,
+           label = paste("Median Pitch Speed:", round(home_run_medians$median_pitch_speed, 2)), 
+           color = "blue", hjust = 0) +
+  annotate("text", x = 50, y = 87, label = "Linear Trend", color = "black", hjust = 0) +
+  geom_smooth(method = "lm", se = FALSE, color = "black", size = 1.1) +
+  labs(
+    title = "Launch Angle vs. Pitch Speed by Home Run with Median Line",
+    x = "Launch Angle (degrees)",
+    y = "Pitch Speed (mph)",
+    color = "Is Home Run"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+
+
+
 ### Hit location
 
 Home runs are consistently hit in specific locations.
