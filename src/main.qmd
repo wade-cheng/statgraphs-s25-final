@@ -11,7 +11,7 @@ authors:
   - name: Leo Yao
 ---
 
-```{r}
+```{r, include=FALSE}
 library(tidyverse)
 library(viridis)
 ```
@@ -81,7 +81,7 @@ Inning affects pitching and batting gameplay.
 
 Home runs appear in a select portion of angles.
 
-```{r}
+```{r, echo=FALSE}
 pitch_data <- baseball |> 
   filter(!is.na(launch_angle))
 
@@ -128,7 +128,7 @@ ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_hom
 
 Home runs are consistently hit in specific locations.
 
-```{r}
+```{r, echo=FALSE}
 baseball |>
   ggplot(aes(x = plate_x, y = plate_z)) +
   stat_density2d(aes(fill = after_stat(level)), geom = "polygon") + 
@@ -156,3 +156,7 @@ Yap about main conclusions.
 ### Future Work
 
 Yap about potential directions for future work.
+
+## Appendix
+
+![Jaihao is Kermit](./media/kermit.png)
