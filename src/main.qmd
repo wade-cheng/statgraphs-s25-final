@@ -32,7 +32,7 @@ lockBinding("baseball", globalenv()) # make baseball immutable
 Baseball, the great American pastime, makes over ten billion dollars year over 
 year [@cohen_2024_mlb], draws millions to stadiums across the nation 
 [@attendence_2023], and is played recreationally at parks and schools every
-single fortnite, or something. After too many times malding at the TV over
+single fortnight, or something. After too many times malding at the TV over
 terrible plays or inscrutable ball trajectories, we decided it would be 
 interesting to pick apart some data to reveal more objective insights into this
 popular game.
