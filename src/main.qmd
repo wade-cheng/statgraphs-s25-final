@@ -151,3 +151,7 @@ Yap about main conclusions.
 ### Future Work
 
 Yap about potential directions for future work.
+
+## Appendix
+
+![Jaihao is Kermit](./media/kermit.png)
