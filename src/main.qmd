@@ -11,7 +11,7 @@ authors:
   - name: Leo Yao
 ---
 
-```{r}
+```{r, include=FALSE}
 library(tidyverse)
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
 ```
@@ -27,6 +27,45 @@ Describe the main research questions of the project.
 ### Bearing
 
 Ball bearing is correlated with player handedness.
+
+```{r, echo=FALSE}
+# mar
+# A numerical vector of the form c(bottom, left, top, right) which gives the number of lines of margin to be specified on the four sides of the plot. The default is c(5, 4, 4, 2) + 0.1.
+par(mfrow = c(1, 2), mar=c(6,1,4,1))
+batter = table(baseball$bearing, baseball$is_batter_lefty)
+dimnames(batter) <- list(
+  c("left", "center", "right"),
+  c("right \nhanded","left \nhanded")
+) 
+
+mosaicplot(
+  batter, 
+  shade=TRUE, 
+  las=1,
+  main="Batter handedness vs bearing"
+  #ylab=c("test","test2","dsf")
+)
+# text( .2,.6, "TEMP GRAHHHHHHHH",col = "black",cex = 0.5) 
+rasterImage(png::readPNG("media/Wii_batter_lefth.png"), xleft=0.4, ybottom=0, xright=0.6, ytop=0.4)
+rasterImage(png::readPNG("media/Wii_batter_righth.png"), xleft=0.4, ybottom=0.5, xright=0.6, ytop=0.9)
+
+# reverse bearing for better visualization (pitcher's pov is right center left)
+baseball$bearing = factor(baseball$bearing, levels=c("right", "center", "left"))
+pitcher = table(baseball$bearing, baseball$is_pitcher_lefty)
+dimnames(pitcher) <- list(
+  c("right", "center", "left"),
+  c("right \nhanded","left \nhanded")
+) 
+mosaicplot(
+  pitcher, 
+  shade=TRUE, 
+  las=1,
+  main="Pitcher handedness vs bearing"
+)
+rasterImage(png::readPNG("media/Wii_pitcher_lefth.png"), xleft=0.3, ybottom=0.2, xright=0.6, ytop=0.5)
+rasterImage(png::readPNG("media/Wii_pitcher_righth.png"), xleft=0.3, ybottom=0.7, xright=0.6, ytop=1)
+```
+
 
 ### Inning
 
