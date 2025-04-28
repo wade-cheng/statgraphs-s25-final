@@ -138,7 +138,12 @@ baseball |>
   geom_vline(xintercept = 0, color = "red", size = 1) + 
   scale_fill_viridis(name = "Density Level") + 
   theme_bw()
-    
+```
+
+Graphic 2:
+
+```{r}
+
 ```
 
 
