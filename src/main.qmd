@@ -1,6 +1,7 @@
 ---
 title: "Baseball Analysis"
 format: html
+output-file: "index.html"
 ---
 
 ## Quarto
