@@ -14,6 +14,7 @@ authors:
 ```{r, include=FALSE}
 library(tidyverse)
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
+lockBinding("baseball", globalenv()) # make baseball immutable
 ```
 
 ## Introduction
