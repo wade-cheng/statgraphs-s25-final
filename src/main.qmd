@@ -51,8 +51,8 @@ rasterImage(png::readPNG("media/Wii_batter_lefth.png"), xleft=0.4, ybottom=0, xr
 rasterImage(png::readPNG("media/Wii_batter_righth.png"), xleft=0.4, ybottom=0.5, xright=0.6, ytop=0.9)
 
 # reverse bearing for better visualization (pitcher's pov is right center left)
-baseball$bearing = factor(baseball$bearing, levels=c("right", "center", "left"))
-pitcher = table(baseball$bearing, baseball$is_pitcher_lefty)
+rev_bearing = factor(baseball$bearing, levels=c("right", "center", "left"))
+pitcher = table(rev_bearing, baseball$is_pitcher_lefty)
 dimnames(pitcher) <- list(
   c("right", "center", "left"),
   c("right \nhanded","left \nhanded")
