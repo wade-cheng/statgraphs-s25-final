@@ -1,0 +1,76 @@
+---
+title: "Rubric"
+format: 
+  html:
+    toc: true
+---
+
+## General Requirements
+
+- at least one formal statistical analysis!! (t-test, KS test, regression analysis, etc)
+- one research question per person
+- at least two graphs for each research question 
+- at least three graphs from the first half of the semester (Weeks 1-7)
+- at least three graphs from the second half of the semester (Weeks 8-14)
+- maximum of two 1D graphs 
+- a facetted graph counts as one graph
+- Your graphs should tell a somewhat cohesive story. Come up with some general
+  questions you want to answer with your dataset. You should be able to come up 
+  with at least three or four interesting, overarching questions for your 
+  dataset. You’ll use your graphs to walk the viewer through a comprehensive 
+  analysis of those questions, as well as demonstrate your findings and conclusions.
+  
+## Structure
+
+- start with a short paragraph and/or bullet-point list describing the data
+- followed by a short paragraph and/or bullet-point list describing the main research
+questions of the project
+- the middle part of your report should consist of your graphs 
+  - bookend-ed (this means surrounded by????) by statements motivating how the 
+    graphs fit into the overarching narrative of the project 
+  - their interpretation and main takeaways
+  - a (dogwater) template is in the `report_rubric.pdf`
+- At the end of your report, a short paragraph (or paragraphs) for:
+  - main conclusions
+  - potential directions for future work.
+  
+## Grading
+
+(Bold is pass/fail points, bullets are on a scale.)
+(pass/fail points will add up to 60%.)
+
+- **Does the report provide a description of the dataset?**
+  - what is the quality of this description? Does it clearly communicate what 
+    the rows and columns (i.e., subjects and variables) are in the dataset in a 
+    way that is understandable to a CMU undergraduate?
+- **Does the report have the required number of clearly stated research questions?**
+  - what is the quality of the research questions? Are they well-motivated by
+    real-world/scientific interests? Or are they shallow? 
+  - For example, a shallow question would be in the form, What does the 
+    distribution of this variable look like? 
+  - A more interesting question would motivate why we would like to inspect 
+    particular distributions with real-world context.
+- **Correct number/type of graphs** (see general requirements)
+  - What is the quality of these graphs? Are these graphs easily readable, 
+    interpretable, and properly labeled?
+  - are the graphs well-motivated? 
+  - In other words, do the graphs address/answer the research questions of the
+  - project, or do they only provide tangential (or even irrelevant) details?
+- **further descriptions/interpretations for each graph**
+  - What is the quality of these descriptions? After reading these descriptions, 
+    is it crystal clear what is being displayed in the graph and what the main
+    takeaways are?
+- **Does the report include any kind of statistical analyses and/or summary**
+  **statistics/tables to complement their graphs?**
+  - Are the statistical analyses appropriate given the type of data and research 
+    questions of interest? Are the statistical analyses interpreted correctly?
+- **provide some clear conclusions that can be made from their graphs and analyses?**
+  - What is the accuracy of the claims being made? Are the claims well-supported 
+    by the graphs and analyses presented? Are the conclusions well-aligned with 
+    the research questions of the project?
+- **Does the report discuss questions that have not been answered by the project,**
+  **but could be answered with future work?**
+  - Did the team provide adequate reasons as to why these questions were left as 
+    future work (e.g., they need more data, need more nuanced statistical
+    techniques they haven’t learned, etc.)? Are these future-work questions 
+    well-motivated given what the team has completed for this project?
