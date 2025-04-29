@@ -19,6 +19,7 @@ library(viridis)
 
 ```{r, include=FALSE}
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
+park_dim <- read_csv("park_dimensions.csv")
 lockBinding("baseball", globalenv()) # make baseball immutable
 ```
 
@@ -140,10 +141,51 @@ baseball |>
   theme_bw()
 ```
 
-Graphic 2:
+Graphic 2: analyzing lefty with
 
 ```{r}
+park_dim$park <- as.factor(park_dim$park)
+altered_bb <- full_join(baseball, park_dim, by = "park")
+altered_bb <- altered_bb |>
+  mutate(sp_ratio = launch_speed/pitch_mph)
 
+bb_data_lefty <- altered_bb |>
+  filter(is_batter_lefty == 1) |>
+  select(- is_batter_lefty)
+bb_data_lefty <- na.omit(bb_data_lefty)
+
+bb_data_righty <- altered_bb |>
+  filter(is_batter_lefty == 0) |>
+  select(- is_batter_lefty)
+bb_data_righty <- na.omit(bb_data_righty)
+
+altered_bb.rm <- na.omit(altered_bb)
+
+l_cor <- round(cor(bb_data_lefty$plate_z, bb_data_lefty$sp_ratio), 5)
+r_cor <- round(cor(bb_data_righty$plate_z, bb_data_righty$sp_ratio), 5)
+t_cor <- round(cor(altered_bb.rm$plate_z, altered_bb.rm$sp_ratio), 5)
+
+labels <- data.frame(
+  is_batter_lefty = c("0", "1"),  # MUST match the original raw values
+  plate_z = c(4, 4),              # x-coordinate for label
+  sp_ratio = c(1.5, 1.5),         # y-coordinate for label
+  label = c(paste("r =", r_cor), paste("r =", l_cor))
+)
+
+# Now fix the plot:
+altered_bb |> 
+  ggplot(aes(x = plate_z, y = sp_ratio)) + 
+  geom_point(alpha = 0.05) + 
+  facet_grid(. ~ fct_recode(is_batter_lefty, "Righty" = "0", "Lefty" = "1")) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") + 
+  geom_text(
+    data = labels,
+    mapping = aes(x = plate_z, y = sp_ratio, label = label),  # <- use variable names, not constants
+    inherit.aes = FALSE,
+    size = 3.5
+  ) +
+  theme_bw() + 
+  labs(title = "Scatterplots of Pitch Height vs. Speed Ratio by Batter Handedness", x = "plate_z (feet)", y = "Speed Ratio", caption = "Speed Ratio is Launch Speed / Pitch Speed")
 ```
 
 
