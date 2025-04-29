@@ -129,6 +129,27 @@ rasterImage(png::readPNG("media/Wii_pitcher_righth.png"), xleft=0.3, ybottom=0.7
 
 Inning affects pitching and batting gameplay.
 
+```{r}
+# new graph; this was my presentation graph
+bb_train_edit |>
+  ggplot(aes(x = inning)) +
+  geom_density(aes(color = pitch_name_grouped)) +
+  scale_color_manual(values = c("gold", "royalblue", "purple")) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  # geom_vline(xintercept = 1, color = "gold3") +
+  # geom_vline(xintercept = 4, color = "royalblue3") +
+  # geom_vline(xintercept = 6, color = "purple3") +
+  facet_grid(~ bb_type_renamed) +
+  labs(title = "Facetted Density Graphs of Batted Ball Type by Pitch Type",
+       x = "Inning",
+       y = "Density",
+       color = "Pitch type",
+       caption = "Note: Pitch type modes at innings 1, 4, and 6, respectively") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.caption.position = "plot")
+```
+
+
 ### Launch angle
 
 Some variables we want to explore further are launch angle and pitch speed in relation to game performance. In this section, we ask if launch angle and pitch speed correlate with each other, and what ways do they affect if a batted ball was a home run? 
