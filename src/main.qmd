@@ -56,7 +56,6 @@ Each observation has twenty-five variables. We analyzed the subset below:
 - pitch_mph: speed of pitched ball (miles per hour)
 - plate_x: ball position left (-) or right (+) of center plate (feet)
 - plate_z: ball position above home plate (feet)
-- launch_speed: speed of ball leaving the bat (miles per hour)
 - launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)
 - bb_type: batted ball type classification
 - bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)
