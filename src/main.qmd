@@ -30,21 +30,20 @@ lockBinding("baseball", globalenv()) # make baseball immutable
 
 ## Introduction
 
-Baseball, the great American pastime, makes over ten billion dollars year over 
-year [@cohen_2024_mlb], draws millions to stadiums across the nation 
-[@attendence_2023], and is played recreationally at parks and schools every
-single fortnight, or something. After too many times malding at the TV over
-terrible plays or inscrutable ball trajectories, we decided it would be 
-interesting to pick apart some data to reveal more objective insights into this
-popular game.
+Baseball, the great American pastime, makes over ten billion dollars annually
+[@cohen_2024_mlb], draws millions to stadiums across the nation [@attendence_2023],
+and is played recreationally at parks and schools every day. After malding at
+the TV over terrible plays or inscrutable ball trajectories too many times, we
+decided it would be interesting to pick apart real professional league data to
+reveal more objective insights into this popular game.
 
 Our dataset [@jcraggy_2020_baseball] comes from a Kaggle model-creating 
-competition to predict home runs. It has 46,244 recordings that represent each
-batted ball from the 2020 MLB season (which was abbreviated due to COVID---60
-games were played instead of the usual 162). The dataset did include postseason
-games. 
+competition to predict home runs. It has 46,244 observations that represent each
+batted ball from the 2020 MLB season (which was abbreviated due to COVID---the
+regular season included 60 games against 9 opponents instead of the typical 162
+games against 19 or 20 opponents). The dataset also includes post-season games. 
 
-Each recording had twenty-five variables. We analyzed the subset below:
+Each observation has twenty-five variables. We analyzed the subset below:
 
 **TODO: bold variables you use!**
 **This will help us remove items we didn't use, later**
@@ -58,28 +57,27 @@ Each recording had twenty-five variables. We analyzed the subset below:
 - pitcher_name: pitcher's name
 - batter_id: batter's unique identifier
 - pitcher_id: pitcher's unique identifier
-- **is_batter_lefty: binary encoding of left-handed batters**
-- **is_pitcher_lefty: binary encoding of left-handed pitchers**
-- bb_type: batted ball type classification
-- **bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)**
-- pitch_name: name of pitch type thrown
 - park: unique identifier of park venue
-- inning: inning number within game
-- outs_when_up: current number of outs
 - balls: current number of balls
 - strikes: current number of strikes
-- plate_x: ball position left(-) or right(+) of center plate (feet)
-- plate_z: ball position above home plate (feet)
-- pitch_mph: speed of pitched ball (miles per hour)
-- launch_speed: speed of ball leaving the bat (miles per hour)
-- launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)
-- is_home_run: binary encoding of home runs
-
-<!-- NOTE: feel free to change "special focus" if you change your main variable -->
+- **inning: inning number within game**
+- **outs_when_up: current number of outs**
+- **is_pitcher_lefty: binary encoding of left-handed pitchers**
+- **is_batter_lefty: binary encoding of left-handed batters**
+- **pitch_name: name of pitch type thrown**
+- **pitch_mph: speed of pitched ball (miles per hour)**
+- **plate_x: ball position left(-) or right(+) of center plate (feet)**
+- **plate_z: ball position above home plate (feet)**
+- **launch_speed: speed of ball leaving the bat (miles per hour)**
+- **launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)**
+- **bb_type: batted ball type classification**
+- **bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)**
+- **is_home_run: binary encoding of home runs**
 
 With these variables, we aimed to investigate anything that might help a team
-win a game of baseball, with special focus on ball bearing, inning number, launch
-angle, and hit location.
+win a game of baseball, with special focus on inning number, hit location,
+launch angle, and ball bearing. In particular, we studied the relationship
+between each of these factors and player performance.
 
 ## Results
 
