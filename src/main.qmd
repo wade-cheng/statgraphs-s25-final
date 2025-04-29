@@ -2,6 +2,7 @@
 title: "Baseball Analysis"
 format: html
 output-file: "index.html"
+bibliography: sources.bib
 authors:
 # https://quarto.org/docs/journals/authors.html#author-schema
 # if you want to be fancy with it
@@ -9,6 +10,10 @@ authors:
   - name: Wade Cheng 
   - name: Jaihao Wu
   - name: Leo Yao
+# these can be enabled to stop running code chunks, which is helpful if you just
+# want to test out content without needing to compile everything every re-render
+# execute:
+#   eval: false
 ---
 
 ```{r, include=FALSE}
@@ -25,9 +30,56 @@ lockBinding("baseball", globalenv()) # make baseball immutable
 
 ## Introduction
 
-Yap yap yap. Describe/contextualize the data.
+Baseball, the great American pastime, makes over ten billion dollars year over 
+year [@cohen_2024_mlb], draws millions to stadiums across the nation 
+[@attendence_2023], and is played recreationally at parks and schools every
+single fortnight, or something. After too many times malding at the TV over
+terrible plays or inscrutable ball trajectories, we decided it would be 
+interesting to pick apart some data to reveal more objective insights into this
+popular game.
 
-Describe the main research questions of the project.
+Our dataset [@jcraggy_2020_baseball] comes from a Kaggle model-creating 
+competition to predict home runs. It has 46,244 recordings that represent each
+batted ball from the 2020 MLB season (which was abbreviated due to COVID---60
+games were played instead of the usual 162). The dataset did include postseason
+games. 
+
+Each recording had twenty-five variables. We analyzed the subset below:
+
+**TODO: bold variables you use!**
+**This will help us remove items we didn't use, later**
+
+- bip_id: unique identifier of ball in play
+- game_date: date of game (YYYY-MM-DD)
+- home_team: home team abbreviation
+- away_team: away team abbreviation
+- batter_team: batter's team abbreviation
+- batter_name: batter's name
+- pitcher_name: pitcher's name
+- batter_id: batter's unique identifier
+- pitcher_id: pitcher's unique identifier
+- **is_batter_lefty: binary encoding of left-handed batters**
+- **is_pitcher_lefty: binary encoding of left-handed pitchers**
+- bb_type: batted ball type classification
+- **bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)**
+- pitch_name: name of pitch type thrown
+- park: unique identifier of park venue
+- inning: inning number within game
+- outs_when_up: current number of outs
+- balls: current number of balls
+- strikes: current number of strikes
+- plate_x: ball position left(-) or right(+) of center plate (feet)
+- plate_z: ball position above home plate (feet)
+- pitch_mph: speed of pitched ball (miles per hour)
+- launch_speed: speed of ball leaving the bat (miles per hour)
+- launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)
+- is_home_run: binary encoding of home runs
+
+<!-- NOTE: feel free to change "special focus" if you change your main variable -->
+
+With these variables, we aimed to investigate anything that might help a team
+win a game of baseball, with special focus on ball bearing, inning number, launch
+angle, and hit location.
 
 ## Results
 
@@ -78,25 +130,67 @@ rasterImage(png::readPNG("media/Wii_pitcher_righth.png"), xleft=0.3, ybottom=0.7
 
 Inning affects pitching and batting gameplay.
 
+```{r, echo = FALSE}
+# elina original graph
+bb_train_edit <- baseball |>
+  select(inning, pitch_name, bb_type) |>
+  filter(!is.na(inning), !is.na(pitch_name), !is.na(bb_type),
+         !(inning == "10"), !(inning == "11"),
+         !(inning == "12"), !(inning == "13"))
+bb_train_edit$pitch_name_grouped = 
+  bb_train_edit$pitch_name |> 
+  forcats::fct_recode("Fastball" = "4-Seam Fastball",
+                      "Fastball" = "Cutter",
+                      "Fastball" = "Forkball",
+                      "Fastball" = "Sinker",
+                      "Fastball" = "Split-Finger",
+                      "Breaking ball" = "Curveball",
+                      "Breaking ball" = "Knuckle Curve",
+                      "Breaking ball" = "Slider",
+                      "Changeup" = "Changeup")
+bb_train_edit$bb_type_renamed = 
+  bb_train_edit$bb_type |> 
+  forcats::fct_recode("Fly ball" = "fly_ball",
+                      "Ground ball" = "ground_ball",
+                      "Line drive" = "line_drive",
+                      "Popup" = "popup")
+bb_train_edit |>
+  ggplot(aes(x = inning)) +
+  geom_density(aes(color = pitch_name_grouped)) +
+  scale_color_manual(values = c("gold", "royalblue", "purple")) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  facet_grid(~ bb_type_renamed) +
+  labs(title = "Facetted Density Graphs of Batted Ball Type by Pitch Type",
+       x = "Inning",
+       y = "Density",
+       color = "Pitch type",
+       caption = "Note: Pitch type modes at innings 1, 4, and 6, respectively") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.caption.position = "plot")
+```
+
+
 ### Launch angle
 
-Home runs appear in a select portion of angles.
+Some variables we want to explore further are launch angle and pitch speed in relation to game performance. In this section, we ask if launch angle and pitch speed correlate with each other, and what ways do they affect if a batted ball was a home run? 
+
+To investigate these possible relationships, we first clean the baseball data to remove null values from pitch speed and launch angles. Then, we created a scatteplot between pitch speed (mph) and launch angles (degrees), colored by if a batted ball was a home run or not:
 
 ```{r, echo=FALSE}
 pitch_data <- baseball |> 
-  filter(!is.na(launch_angle))
+  filter(!is.na(launch_angle), !is.na(pitch_mph))
 
 home_run_medians <- pitch_data |>
   filter(is_home_run == 1) |>
   summarise(
-    median_launch_angle = median(launch_angle, na.rm = TRUE),
-    median_pitch_speed = median(pitch_mph, na.rm = TRUE)
+    median_launch_angle = median(launch_angle),
+    median_pitch_speed = median(pitch_mph)
   )
 
 ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_home_run))) +
   geom_point(alpha = 0.4, size = 1.5) +
   scale_color_manual(values = c("0" = "gray", "1" = "red"), 
-                     labels = c("No", "Yes")) +
+                     labels = c("No", "Yes")) + 
   geom_vline(xintercept = home_run_medians$median_launch_angle, 
              color = "orange", linetype = "solid") +
   geom_hline(yintercept = home_run_medians$median_pitch_speed, 
@@ -104,12 +198,12 @@ ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_hom
   annotate("text", 
            x = home_run_medians$median_launch_angle + 2,
            y = max(pitch_data$pitch_mph),
-           label = paste("Median Launch Angle:", round(home_run_medians$median_launch_angle, 2)), 
+           label = paste("Median Launch Angle (HR):", round(home_run_medians$median_launch_angle, 2)), 
            color = "orange", hjust = 0) + 
   annotate("text", 
-           x = min(pitch_data$launch_angle, na.rm = TRUE) + 15,
+           x = min(pitch_data$launch_angle) + 15,
            y = home_run_medians$median_pitch_speed + 1,
-           label = paste("Median Pitch Speed:", round(home_run_medians$median_pitch_speed, 2)), 
+           label = paste("Median Pitch Speed (HR):", round(home_run_medians$median_pitch_speed, 2)), 
            color = "blue", hjust = 0) +
   annotate("text", x = 50, y = 87, label = "Linear Trend", color = "black", hjust = 0) +
   geom_smooth(method = "lm", se = FALSE, color = "black", size = 1.1) +
@@ -122,8 +216,54 @@ ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_hom
   theme_minimal() +
   theme(legend.position = "top")
 ```
+We can see that home run balls appear to occur across all pitch speeds, not limited to certain ranges, whereas launch angles distinctly appear to have a specific range of values where home runs occur. The blue and orange lines represent the median values of pitch speed and launch angles respectively for home runs. We can compare these values with the overall median values of all the batted balls below: 
 
+```{r}
+overall_medians <- pitch_data |>
+  summarise(
+    median_launch_angle = median(launch_angle),
+    median_pitch_speed = median(pitch_mph)
+  )
+overall_medians$median_launch_angle
+overall_medians$median_pitch_speed
+```
+We see that the overall pitch speed median is extremely close to the median pitch speed for home runs, which makes sense since we did not find an obvious interval where home runs occur more for pitch speed. However, we find the value for overall median launch angle to be 13, which is much further than the median value of 28 for launch speed for home runs. Furthermore, a relatively horizontal linear trend indicates that pitch speed and launch angle do not seem to correlate with each other. As a result, we may want to dive deeper into the relationship between launch angles and home runs.
 
+We can explore more options for analysis by checking the mean values for launch angle. Since we want to check for normality, we can conduct the shapiro-wilk normality test to see if we are able to use a t test on the difference between mean values for launch angles. We do this by sampling 5000 observations from pitch_data, since R can take a maximum of 5000 values, and conducting the shapiro test on launch angle.
+
+```{r}
+set.seed(236)
+sampled_launch_angle <- sample(pitch_data$launch_angle, 5000) 
+
+shapiro.test(sampled_launch_angle)
+```
+We find that the p-value for the test is below 0.05, at 2.496e-15. However, shapiro wilks test may reject normality at high sample sizes, so we can confirm again through a qq plot for normality: 
+
+```{r}
+qqnorm(sampled_launch_angle, main = "Q-Q Plot of Launch Angles")
+qqline(sampled_launch_angle, col = "red")
+```
+We find the the Q-Q plot for launch angles is S-shaped, and deviates at the ends of the line, which suggests heavy outliers that don't conform to the normal distribution. As a result, we confirm that the distribution for launch angle is not normal. 
+
+Then, we cannot use a t test to check the mean values between overall batted balls and home run batted balls. However, since our sample size is so large, by the central limit theorem we can claim that the means will be approximately normal; then we can use a z test as opposed to a t test. Below we manually calculate the z test between home run launch angles and non-home run launch angles:
+
+```{r}
+home_run_data <- pitch_data |>
+  filter(is_home_run == 1)
+
+non_home_run_data <- pitch_data |>
+  filter(is_home_run == 0)
+
+library(BSDA)
+
+z.test(x = home_run_data$launch_angle,
+       y = non_home_run_data$launch_angle,
+       alternative = "two.sided",
+       mu = 0,
+       sigma.x = sd(home_run_data$launch_angle),
+       sigma.y = sd(non_home_run_data$launch_angle))
+```
+The results of the two-sample z-test here reveal a statistically significant difference in mean launch angles between home run and non-home run batted balls (p-value < 2.2e-16). Specifically, the mean launch angle for home runs is significantly higher than for non-home runs. This suggests that launch angle plays a critical role in determining whether a batted ball results in a home run. Therefore, we can conclude that launch angle is an important factor for predicting home run outcomes in baseball.
 
 ### Hit location
 
