@@ -27,8 +27,8 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```{r, include=FALSE}
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
 park_dim <- read_csv("park_dimensions.csv")
-lockBinding("baseball", globalenv()) # make baseball immutable
-#unlockBinding("baseball", globalenv())
+#lockBinding("baseball", globalenv()) # make baseball immutable
+unlockBinding("baseball", globalenv())
 ```
 
 ## Introduction
@@ -233,8 +233,8 @@ We see that the overall pitch speed median is extremely close to the median pitc
 We can confirm whether launch angle is normal by looking at its Q-Q plot: 
 
 ```{r}
-qqnorm(sampled_launch_angle, main = "Q-Q Plot of Launch Angles")
-qqline(sampled_launch_angle, col = "red")
+#qqnorm(sampled_launch_angle, main = "Q-Q Plot of Launch Angles")
+#qqline(sampled_launch_angle, col = "red")
 ```
 We find the the Q-Q plot for launch angles is S-shaped, and deviates at the ends of the line, which suggests heavy outliers that don't conform to the normal distribution. As a result, we confirm that the distribution for launch angle is not normal. 
 
@@ -329,15 +329,12 @@ We also wanted to find out how the height of a pitch might affect the batting pe
 Firstly, we validate our desire to look into lefty and righty batters by analyzing if their distribution of plate_z is different to each other. To find out, we shall perform a two-sample Kolmogorov-Smirnov Test. In particular, we shall analyze if the distribution of pitch_z is the same among both.
 
 ```{r}
-ks.test(x = bb_data_lefty$plate_z, y = bb_data_righty$plate_z)
-```
-Since the p-value of the Kolmogorov-Smirnov test is less than our alpha of 0.05, we have sufficient evidence to reject the null hypothesis. Therefore, we can conclude that the means are not equal. Thus, there might be a difference among lefty and righty batters in this regard. Thus, we proceed to our analyzed relationship of plate_z compared to sp_ratio below between lefty and righty batters.
-
-```{r, echo = FALSE, warning = FALSE}
 park_dim$park <- as.factor(park_dim$park)
 altered_bb <- full_join(baseball, park_dim, by = "park")
 altered_bb <- altered_bb |>
   mutate(sp_ratio = launch_speed/pitch_mph)
+
+altered_bb.rm <- na.omit(altered_bb)
 
 bb_data_lefty <- altered_bb |>
   filter(is_batter_lefty == 1) |>
@@ -349,7 +346,11 @@ bb_data_righty <- altered_bb |>
   select(- is_batter_lefty)
 bb_data_righty <- na.omit(bb_data_righty)
 
-altered_bb.rm <- na.omit(altered_bb)
+ks.test(x = bb_data_lefty$plate_z, y = bb_data_righty$plate_z)
+```
+Since the p-value of the Kolmogorov-Smirnov test is less than our alpha of 0.05, we have sufficient evidence to reject the null hypothesis. Therefore, we can conclude that the means are not equal. Thus, there might be a difference among lefty and righty batters in this regard. Thus, we proceed to our analyzed relationship of plate_z compared to sp_ratio below between lefty and righty batters.
+
+```{r, echo = FALSE, warning = FALSE}
 
 l_cor <- round(cor(bb_data_lefty$plate_z, bb_data_lefty$sp_ratio), 5)
 r_cor <- round(cor(bb_data_righty$plate_z, bb_data_righty$sp_ratio), 5)
@@ -381,6 +382,37 @@ altered_bb |>
 ```
 
 There appears to be a weak negative correlation between the height of a pitch and the resulting speed ratio, indicating that this relationship appears to be the same for both lefty and righty batters. Moreover, the negative relationship appears to be slightly stronger for lefty batters as the Pearson correlation coefficient of -0.07285 has a larger magnitude than the Pearson correlation coefficient among righty batters of -0.05141, but to a nearly negligible degree. This suggests that higher pitches cause worse batting performance, which is likely due to the fact that it is harder for hitters to generate swing speed if the pitch is higher due to the characteristics of a baseball swing. Furthermore, the requirement that catchers be crouched is likely why the correlation coefficients are so low in this relationship. Regardless, pitchers could consider pitching slightly higher to limit batting performance of hitters, thus limiting the possibility of hard-to-get hits or home runs.
+
+```{r}
+bb_train_edit_3 <- baseball |>
+  select(inning, is_home_run, outs_when_up) |>
+  filter(!is.na(inning), !is.na(is_home_run), !is.na(outs_when_up),
+         !(inning == "10"), !(inning == "11"),
+         !(inning == "12"), !(inning == "13"))
+
+bb_train_edit_3 |>
+  ggplot(aes(x = inning, y = outs_when_up)) +
+  geom_point(aes(color = is_home_run), alpha = 0.5, size = 5)# +
+  #scale_color_gradient(low = "white", high = "black") +
+  #scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  #scale_y_continuous(breaks = c(0, 1, 2))
+bb_train_edit_3 |>
+  ggplot(aes(x = inning, y = outs_when_up)) +
+  geom_point(aes(color = is_home_run), alpha = 0.5) +
+  geom_count() #+
+  #facet_grid(~ is_home_run) +
+  #scale_color_gradient(low = "white", high = "black") +
+  #scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  #scale_y_continuous(breaks = c(0, 1, 2))
+bb_train_edit_3 |>
+  ggplot(aes(x = inning, y = outs_when_up)) +
+  stat_density2d(aes(fill = after_stat(density)), geom = "tile", contour = FALSE) +
+  #scale_fill_gradient(low = "white", high = "black") +
+  facet_grid(~ is_home_run) #+
+  #scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  #scale_y_continuous(breaks = c(0, 1, 2))
+```
+
 
 ## Discussion
 
