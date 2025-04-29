@@ -439,7 +439,7 @@ On the relationship between plate_z and the speed ratio, despite finding that th
 
 ### Future Work
 
-Future work regarding 
+Future work regarding the relationship between inning and game performance should be focused toward finding out how park dimensions relate to inning and game performance, due to the fact that park dimensions can make home runs easier. We did not include this analysis due to the fact that we do not have the sufficient data to make this analysis, in addition to the fact that the only data on parks within this dataset comes from the United States.
 
 Future directions regarding launch angles can be focused towards finding better models to predict home runs. Although we created two regression models, logistic and quadratic, we can try looking at other polynomial relationships and include other significant variables to create a more generalizable relationship to predict home runs. Additionally, we can relate launch angles to other variables other than home run for further analysis. 
 
