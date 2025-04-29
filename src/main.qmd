@@ -62,8 +62,8 @@ Each observation has twenty-five variables. We analyzed the subset below:
 - is_home_run: binary encoding of home runs
 
 With these variables, we aimed to investigate anything that might help a team
-win a game of baseball, with special focus on ball bearing, inning number, launch angle, and hit location. 
-In particular, we studied the relationship
+win a game of baseball, with special focus on ball bearing, inning number,
+launch angle, and hit location. In particular, we studied the relationship
 between each of these factors and player performance.
 
 ## Results
