@@ -268,6 +268,7 @@ The results of the two-sample z-test here reveal a statistically significant dif
 ### Hit location
 
 Home runs are consistently hit in specific locations.
+aaaaa
 
 ```{r, echo=FALSE}
 baseball |>
@@ -327,8 +328,6 @@ altered_bb |>
   theme_bw() + 
   labs(title = "Scatterplots of Pitch Height vs. Speed Ratio by Batter Handedness", x = "plate_z (feet)", y = "Speed Ratio", caption = "Speed Ratio is Launch Speed / Pitch Speed")
 ```
-
-
 
 
 ## Discussion
