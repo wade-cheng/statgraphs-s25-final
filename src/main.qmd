@@ -232,8 +232,8 @@ We see that the overall pitch speed median is extremely close to the median pitc
 We can confirm whether launch angle is normal by looking at its Q-Q plot: 
 
 ```{r}
-qqnorm(sampled_launch_angle, main = "Q-Q Plot of Launch Angles")
-qqline(sampled_launch_angle, col = "red")
+qqnorm(pitch_data$launch_angle, main = "Q-Q Plot of Launch Angles")
+qqline(pitch_data$launch_angle, col = "red")
 ```
 We find the the Q-Q plot for launch angles is S-shaped, and deviates at the ends of the line, which suggests heavy outliers that don't conform to the normal distribution. As a result, we confirm that the distribution for launch angle is not normal. 
 
