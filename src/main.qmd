@@ -265,10 +265,11 @@ z.test(x = home_run_data$launch_angle,
 ```
 The results of the two-sample z-test here reveal a statistically significant difference in mean launch angles between home run and non-home run batted balls (p-value < 2.2e-16). Specifically, the mean launch angle for home runs is significantly higher than for non-home runs. This suggests that launch angle plays a critical role in determining whether a batted ball results in a home run. Therefore, we can conclude that launch angle is an important factor for predicting home run outcomes in baseball.
 
-### Hit location
+### How does the plate position of a pitch affect batting performance? 
 
-Home runs are consistently hit in specific locations.
-aaaaa
+In Baseball, batters at-bat stand beside the home plate, seeking to hit the pitched ball in order to score "runs." Pitches can wildly differ in terms of behavior, varying in terms of speed and movement. One recorded metric for pitched balls is the point at which they cross the home plate. The position of a ball as it crosses the home plate is especially relevant for batters as it determines where they should swing their bats at. This is also relevant for pitchers, as these areas reflect areas that pitchers should avoid pitching toward to ensure minimized home runs for the opposing team. Thus, the question that we want to analyze is how certain plate positions of pitches affect batting performance.
+
+Plate position can be defined in terms of two variables: plate_x and plate_z. Plate_x is the displacement away from the center of the home plate, and plate_z is the displacement above the plate. Both variables are in terms of feet. We wanted to learn where the most common plate locations were for pitches between hits that resulted in home runs compared to those that did not. Hence, the variables we seek to analyze are plate_x, plate_z, and is_home_run. We find the most common plate positions by utilizing a contour plot。
 
 ```{r, echo=FALSE}
 baseball |>
@@ -282,9 +283,11 @@ baseball |>
   theme_bw()
 ```
 
-Graphic 2: analyzing lefty with
+In this graph, a red line is added at plate_x = 0 in order to show if a pitch is centered or not. For pitches that resulted in home runs, there appears to be a singular mode within the data at around 0.0 feet for plate_x and around 2.2 for plate_z. However, among pitches that resulted in home runs, the results greatly differ. Like seen with the pitches that did not result in home runs, there also appears to be a singular mode within the data, but the density of the mode appears to be far greater. This is reflected within the lighter color of center of the mode, which indicates a greater density of points. Furthermore, unlike the mode for pitches that did not result in a home run, this mode appears to be off-center, as it is centered at around 0.05 feet for plate_x and 2.25 feet for plate_z. This is likely due to the prevalence of right-handed batters within the MLB. Namely, the sweet spot of the bat is off center and to the right for right-handed batters. Contact with the sweet spot is known to dramatically boost batting performance, which should indicate why the mode is off-center. There is also a small portion of the mode that stretches out left and upwards. This might be from home runs that are hit by left-handed batters.
 
-```{r}
+We also wanted to find out how the height of a pitch might affect the batting performance of a batter. Batting performance can be described as variety of metrics that analyze how the ball comes off the bat. In this case, we seek to analyze the speed of balls that come off the bat. However, since higher pitch speeds are likely to result in higher launch speeds of balls, we must control for pitch speed. Thus, we create a new ratio variable called "sp_ratio" which is defined as launch speed/pitch speed. A higher sp_ratio means that the batter hit was more successful as they were able to put in more speed to their hit proportional to the pitch they were given, which means that it will likely be harder to catch in the outfield as well (and potentially result in a home run). We are also curious to see how this differs among left and right-handed batters. Thus, to analyze this, we utilize a scatterplot between pitch_z and sp_ratio, faceted by if the batter is lefty or not. We also add a linear regression trendline to visualize this relationship.
+
+```{r, echo = FALSE}
 park_dim$park <- as.factor(park_dim$park)
 altered_bb <- full_join(baseball, park_dim, by = "park")
 altered_bb <- altered_bb |>
@@ -329,6 +332,7 @@ altered_bb |>
   labs(title = "Scatterplots of Pitch Height vs. Speed Ratio by Batter Handedness", x = "plate_z (feet)", y = "Speed Ratio", caption = "Speed Ratio is Launch Speed / Pitch Speed")
 ```
 
+There appears to be a weak negative correlation between the height of a pitch and the resulting speed ratio, indicating that this relationship appears to be the same for both lefty and righty batters. Moreover, the negative relationship appears to be slightly stronger for lefty batters as the Pearson correlation coefficient of -0.07285 has a larger magnitude than the Pearson correlation coefficient among righty batters of -0.05141, but to a nearly negligible degree. This suggests that higher pitches cause worse batting performance, which is likely due to the fact that it is harder for hitters to generate swing speed if the pitch is higher due to the characteristics of a baseball swing. Furthermore, the requirement that catchers be crouched is likely why the correlation coefficients are so low in this relationship. Regardless, pitchers could consider pitching slightly higher to limit batting performance of hitters, thus limiting the possibility of hard-to-get hits or home runs.
 
 ## Discussion
 
