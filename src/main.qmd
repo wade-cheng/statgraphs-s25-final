@@ -27,7 +27,8 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```{r, include=FALSE}
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
 park_dim <- read_csv("park_dimensions.csv")
-#lockBinding("baseball", globalenv()) # make baseball immutable
+lockBinding("baseball", globalenv()) # make baseball immutable
+#unlockBinding("baseball", globalenv())
 ```
 
 ## Introduction
@@ -325,6 +326,13 @@ In this graph, a red line is added at plate_x = 0 in order to show if a pitch is
 
 We also wanted to find out how the height of a pitch might affect the batting performance of a batter. Batting performance can be described as variety of metrics that analyze how the ball comes off the bat. In this case, we seek to analyze the speed of balls that come off the bat. However, since higher pitch speeds are likely to result in higher launch speeds of balls, we must control for pitch speed. Thus, we create a new ratio variable called "sp_ratio" which is defined as launch speed/pitch speed. A higher sp_ratio means that the batter hit was more successful as they were able to put in more speed to their hit proportional to the pitch they were given, which means that it will likely be harder to catch in the outfield as well (and potentially result in a home run). We are also curious to see how this differs among left and right-handed batters. Thus, to analyze this, we utilize a scatterplot between pitch_z and sp_ratio, faceted by if the batter is lefty or not. We also add a linear regression trendline to visualize this relationship.
 
+Firstly, we validate our desire to look into lefty and righty batters by analyzing if their distribution of plate_z is different to each other. To find out, we shall perform a two-sample Kolmogorov-Smirnov Test. In particular, we shall analyze if the distribution of pitch_z is the same among both.
+
+```{r}
+ks.test(x = bb_data_lefty$plate_z, y = bb_data_righty$plate_z)
+```
+Since the p-value of the Kolmogorov-Smirnov test is less than our alpha of 0.05, we have sufficient evidence to reject the null hypothesis. Therefore, we can conclude that the means are not equal. Thus, there might be a difference among lefty and righty batters in this regard. Thus, we proceed to our analyzed relationship of plate_z compared to sp_ratio below between lefty and righty batters.
+
 ```{r, echo = FALSE, warning = FALSE}
 park_dim$park <- as.factor(park_dim$park)
 altered_bb <- full_join(baseball, park_dim, by = "park")
@@ -368,6 +376,8 @@ altered_bb |>
   ) +
   theme_bw() + 
   labs(title = "Scatterplots of Pitch Height vs. Speed Ratio by Batter Handedness", x = "plate_z (feet)", y = "Speed Ratio", caption = "Speed Ratio is Launch Speed / Pitch Speed")
+
+
 ```
 
 There appears to be a weak negative correlation between the height of a pitch and the resulting speed ratio, indicating that this relationship appears to be the same for both lefty and righty batters. Moreover, the negative relationship appears to be slightly stronger for lefty batters as the Pearson correlation coefficient of -0.07285 has a larger magnitude than the Pearson correlation coefficient among righty batters of -0.05141, but to a nearly negligible degree. This suggests that higher pitches cause worse batting performance, which is likely due to the fact that it is harder for hitters to generate swing speed if the pitch is higher due to the characteristics of a baseball swing. Furthermore, the requirement that catchers be crouched is likely why the correlation coefficients are so low in this relationship. Regardless, pitchers could consider pitching slightly higher to limit batting performance of hitters, thus limiting the possibility of hard-to-get hits or home runs.
