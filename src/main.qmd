@@ -74,23 +74,25 @@ Inning affects pitching and batting gameplay.
 
 ### Launch angle
 
-Home runs appear in a select portion of angles.
+Some variables we want to explore further are launch angle and pitch speed in relation to game performance. In this section, we ask if launch angle and pitch speed correlate with each other, and what ways do they affect if a batted ball was a home run? 
+
+To investigate these possible relationships, we first clean the baseball data to remove null values from pitch speed and launch angles. Then, we created a scatteplot between pitch speed (mph) and launch angles (degrees), colored by if a batted ball was a home run or not:
 
 ```{r}
 pitch_data <- baseball |> 
-  filter(!is.na(launch_angle))
+  filter(!is.na(launch_angle), !is.na(pitch_mph))
 
 home_run_medians <- pitch_data |>
   filter(is_home_run == 1) |>
   summarise(
-    median_launch_angle = median(launch_angle, na.rm = TRUE),
-    median_pitch_speed = median(pitch_mph, na.rm = TRUE)
+    median_launch_angle = median(launch_angle),
+    median_pitch_speed = median(pitch_mph)
   )
 
 ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_home_run))) +
   geom_point(alpha = 0.4, size = 1.5) +
   scale_color_manual(values = c("0" = "gray", "1" = "red"), 
-                     labels = c("No", "Yes")) +
+                     labels = c("No", "Yes")) + 
   geom_vline(xintercept = home_run_medians$median_launch_angle, 
              color = "orange", linetype = "solid") +
   geom_hline(yintercept = home_run_medians$median_pitch_speed, 
@@ -98,12 +100,12 @@ ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_hom
   annotate("text", 
            x = home_run_medians$median_launch_angle + 2,
            y = max(pitch_data$pitch_mph),
-           label = paste("Median Launch Angle:", round(home_run_medians$median_launch_angle, 2)), 
+           label = paste("Median Launch Angle (HR):", round(home_run_medians$median_launch_angle, 2)), 
            color = "orange", hjust = 0) + 
   annotate("text", 
-           x = min(pitch_data$launch_angle, na.rm = TRUE) + 15,
+           x = min(pitch_data$launch_angle) + 15,
            y = home_run_medians$median_pitch_speed + 1,
-           label = paste("Median Pitch Speed:", round(home_run_medians$median_pitch_speed, 2)), 
+           label = paste("Median Pitch Speed (HR):", round(home_run_medians$median_pitch_speed, 2)), 
            color = "blue", hjust = 0) +
   annotate("text", x = 50, y = 87, label = "Linear Trend", color = "black", hjust = 0) +
   geom_smooth(method = "lm", se = FALSE, color = "black", size = 1.1) +
@@ -116,8 +118,54 @@ ggplot(pitch_data, aes(x = launch_angle, y = pitch_mph, color = as.factor(is_hom
   theme_minimal() +
   theme(legend.position = "top")
 ```
+We can see that home run balls appear to occur across all pitch speeds, not limited to certain ranges, whereas launch angles distinctly appear to have a specific range of values where home runs occur. The blue and orange lines represent the median values of pitch speed and launch angles respectively for home runs. We can compare these values with the overall median values of all the batted balls below: 
 
+```{r}
+overall_medians <- pitch_data |>
+  summarise(
+    median_launch_angle = median(launch_angle),
+    median_pitch_speed = median(pitch_mph)
+  )
+overall_medians$median_launch_angle
+overall_medians$median_pitch_speed
+```
+We see that the overall pitch speed median is extremely close to the median pitch speed for home runs, which makes sense since we did not find an obvious interval where home runs occur more for pitch speed. However, we find the value for overall median launch angle to be 13, which is much further than the median value of 28 for launch speed for home runs. Furthermore, a relatively horizontal linear trend indicates that pitch speed and launch angle do not seem to correlate with each other. As a result, we may want to dive deeper into the relationship between launch angles and home runs.
 
+We can explore more options for analysis by checking the mean values for launch angle. Since we want to check for normality, we can conduct the shapiro-wilk normality test to see if we are able to use a t test on the difference between mean values for launch angles. We do this by sampling 5000 observations from pitch_data, since R can take a maximum of 5000 values, and conducting the shapiro test on launch angle.
+
+```{r}
+set.seed(236)
+sampled_launch_angle <- sample(pitch_data$launch_angle, 5000) 
+
+shapiro.test(sampled_launch_angle)
+```
+We find that the p-value for the test is below 0.05, at 2.496e-15. However, shapiro wilks test may reject normality at high sample sizes, so we can confirm again through a qq plot for normality: 
+
+```{r}
+qqnorm(sampled_launch_angle, main = "Q-Q Plot of Launch Angles")
+qqline(sampled_launch_angle, col = "red")
+```
+We find the the Q-Q plot for launch angles is S-shaped, and deviates at the ends of the line, which suggests heavy outliers that don't conform to the normal distribution. As a result, we confirm that the distribution for launch angle is not normal. 
+
+Then, we cannot use a t test to check the mean values between overall batted balls and home run batted balls. However, since our sample size is so large, by the central limit theorem we can claim that the means will be approximately normal; then we can use a z test as opposed to a t test. Below we manually calculate the z test between home run launch angles and non-home run launch angles:
+
+```{r}
+home_run_data <- pitch_data |>
+  filter(is_home_run == 1)
+
+non_home_run_data <- pitch_data |>
+  filter(is_home_run == 0)
+
+library(BSDA)
+
+z.test(x = home_run_data$launch_angle,
+       y = non_home_run_data$launch_angle,
+       alternative = "two.sided",
+       mu = 0,
+       sigma.x = sd(home_run_data$launch_angle),
+       sigma.y = sd(non_home_run_data$launch_angle))
+```
+The results of the two-sample z-test here reveal a statistically significant difference in mean launch angles between home run and non-home run batted balls (p-value < 2.2e-16). Specifically, the mean launch angle for home runs is significantly higher than for non-home runs. This suggests that launch angle plays a critical role in determining whether a batted ball results in a home run. Therefore, we can conclude that launch angle is an important factor for predicting home run outcomes in baseball.
 
 ### Hit location
 
