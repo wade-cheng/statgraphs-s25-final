@@ -56,28 +56,41 @@ Each observation has twenty-five variables. We analyzed the subset below:
 - pitch_mph: speed of pitched ball (miles per hour)
 - plate_x: ball position left (-) or right (+) of center plate (feet)
 - plate_z: ball position above home plate (feet)
-- launch_speed: speed of ball leaving the bat (miles per hour)
 - launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)
 - bb_type: batted ball type classification
 - bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)
 - is_home_run: binary encoding of home runs
 
 With these variables, we aimed to investigate anything that might help a team
-win a game of baseball, with special focus on inning number, hit location,
-launch angle, and ball bearing. In particular, we studied the relationship
+win a game of baseball, with special focus on ball bearing, inning number, launch angle, and hit location. 
+In particular, we studied the relationship
 between each of these factors and player performance.
 
 ## Results
 
 ### Bearing
 
-Ball bearing is correlated with player handedness.
+
+One facet of baseball is the bearing of a batted ball. Our dataset records balls
+as being hit into the left, center or right sides of the field. What informs
+where they might fall? We first investigate the left and right-handedness of 
+batters and pitchers, because this variable is naturally associated with the
+left and right sides of play. 
+
+```{r, include=FALSE}
+baseball$is_batter_lefty |> table() |> prop.table()
+baseball$is_pitcher_lefty |> table() |> prop.table()
+```
+We note that in our data, 57.89% of batters are right-handed and 72.66% of 
+pitchers are right-handed. We have a reasonably large sample of every subgroup.
+
 
 ```{r, echo=FALSE}
 # mar
 # A numerical vector of the form c(bottom, left, top, right) which gives the number of lines of margin to be specified on the four sides of the plot. The default is c(5, 4, 4, 2) + 0.1.
 par(mfrow = c(1, 2), mar=c(6,1,4,1))
-batter = table(baseball$bearing, baseball$is_batter_lefty)
+normal_bearing = factor(baseball$bearing, levels=c("left", "center", "right"))
+batter = table(normal_bearing, baseball$is_batter_lefty)
 dimnames(batter) <- list(
   c("left", "center", "right"),
   c("right \nhanded","left \nhanded")
@@ -111,6 +124,50 @@ rasterImage(png::readPNG("media/Wii_pitcher_lefth.png"), xleft=0.3, ybottom=0.2,
 rasterImage(png::readPNG("media/Wii_pitcher_righth.png"), xleft=0.3, ybottom=0.7, xright=0.6, ytop=1)
 ```
 
+We find that there is not much of a correlation between pitcher handedness and
+bearing---we may only say that right handed pitchers are more likely to serve
+balls hit to their right, onto the left side of the field. Batter handedness is more 
+interesting. Right handed batters are more likely to hit balls to left field, 
+and left handed batters are more likely to hit balls to center and right field. 
+
+This discrepancy might be justified by how far away pitchers are from the batter's box. 
+Any differences in angles caused by handedness might be normalized by the distance
+a ball has to travel. On the other hand, pitcher analysis might yield more
+insights after splitting the data more. That is, an analysis on bearing based on 
+the four pitcher-batter combinations might give pitcher handedness meaning.
+
+The batter handedness is the more interesting data. Because of how 
+differently handed batters stand, we conclude that batters generally hit balls
+early rather than late, causing the balls to fly to opposite field. This has an
+impact on how teams should place players on the field to intercept balls.
+
+We also want to know how pitch speed can correlate with bearing. We know from our
+above analysis that batter handedness correlates with significant differences in
+bearing, so we should facet this analysis over batter handedness as well. In
+summary, we plot pitch speed by bearing, faceted by the batter's handedness.
+
+```{r, echo=FALSE}
+# kernel density plot over left/center/right bearing, facet over pitchmph and launchspeed
+baseball |>
+  ggplot(aes(x=pitch_mph)) +
+  geom_density(aes(color=bearing)) +
+  theme_minimal() +
+  facet_grid(
+    cols=vars(is_batter_lefty), 
+    labeller=labeller(is_batter_lefty=c("0"="Right-handed","1"="Left-handed"))) +
+  labs(title="Pitch speed by bearing, facetted by batter handedness ") +
+  xlab("Pitch Speed (mph)")
+```
+
+Indeed, we see differences by batter handedness. For right handed batters,
+as pitch speed tends around the higher mode, the ball tends to go to right field.
+Also, as the pitch speed tends around the slower mode, the ball tends to go to
+left field. This is mirrored for left handed batters.
+
+Since slower balls are correlated with opposite field and faster with same field,
+we can conclude that slower balls arrive to the bat earlier and are hit earlier, leading to
+landing in the batter's opposite field. This systematic consistency in where balls 
+land can again be used to place players on the field to intercept balls.
 
 ### Inning
 
