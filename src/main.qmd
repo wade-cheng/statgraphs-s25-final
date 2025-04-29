@@ -256,7 +256,7 @@ across innings affects game performance.
 ```{r, echo = FALSE}
 bb_train_inning |>
   ggplot(aes(x = inning, y = outs_when_up)) +
-  geom_point(aes(color = is_home_run), alpha = 0.5, size = 5) +
+  geom_point(aes(color = as.numeric(is_home_run)), alpha = 0.5, size = 5) +
   scale_color_gradient(low = "yellow", high = "black") +
   scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
   scale_y_continuous(breaks = c(0, 1, 2)) +
