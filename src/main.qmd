@@ -19,6 +19,7 @@ authors:
 ```{r, include=FALSE}
 library(tidyverse)
 library(viridis)
+library(BSDA)
 ```
 
 
@@ -188,15 +189,7 @@ overall_medians$median_pitch_speed
 ```
 We see that the overall pitch speed median is extremely close to the median pitch speed for home runs, which makes sense since we did not find an obvious interval where home runs occur more for pitch speed. However, we find the value for overall median launch angle to be 13, which is much further than the median value of 28 for launch speed for home runs. Furthermore, a relatively horizontal linear trend indicates that pitch speed and launch angle do not seem to correlate with each other. As a result, we may want to dive deeper into the relationship between launch angles and home runs.
 
-We can explore more options for analysis by checking the mean values for launch angle. Since we want to check for normality, we can conduct the shapiro-wilk normality test to see if we are able to use a t test on the difference between mean values for launch angles. We do this by sampling 5000 observations from pitch_data, since R can take a maximum of 5000 values, and conducting the shapiro test on launch angle.
-
-```{r}
-set.seed(236)
-sampled_launch_angle <- sample(pitch_data$launch_angle, 5000) 
-
-shapiro.test(sampled_launch_angle)
-```
-We find that the p-value for the test is below 0.05, at 2.496e-15. However, shapiro wilks test may reject normality at high sample sizes, so we can confirm again through a qq plot for normality: 
+We can confirm whether launch angle is normal by looking at its Q-Q plot: 
 
 ```{r}
 qqnorm(sampled_launch_angle, main = "Q-Q Plot of Launch Angles")
@@ -213,8 +206,6 @@ home_run_data <- pitch_data |>
 non_home_run_data <- pitch_data |>
   filter(is_home_run == 0)
 
-library(BSDA)
-
 z.test(x = home_run_data$launch_angle,
        y = non_home_run_data$launch_angle,
        alternative = "two.sided",
@@ -223,6 +214,54 @@ z.test(x = home_run_data$launch_angle,
        sigma.y = sd(non_home_run_data$launch_angle))
 ```
 The results of the two-sample z-test here reveal a statistically significant difference in mean launch angles between home run and non-home run batted balls (p-value < 2.2e-16). Specifically, the mean launch angle for home runs is significantly higher than for non-home runs. This suggests that launch angle plays a critical role in determining whether a batted ball results in a home run. Therefore, we can conclude that launch angle is an important factor for predicting home run outcomes in baseball.
+
+To further explore the relationship between launch angle and the likelihood of a home run, we can fit a logistic regression model. This model predicts the probability of a home run as a function of the launch angle, and it makes sense given home run is a binary variable. However, given that only a select portion of angles have home runs within them, we can consider a quadratic regression (the probability of home run increases, then decreases). Below are the summary for each regression model: 
+
+```{r}
+min(home_run_data$launch_angle)
+max(home_run_data$launch_angle)
+
+pitch_data_filtered <- pitch_data |>
+  filter(!is.na(is_home_run)) |>
+  filter(launch_angle >= 10 & launch_angle <= 50)
+
+glm.out <- glm(is_home_run ~ launch_angle, data = pitch_data_filtered, family = binomial)
+
+summary(glm.out)
+
+quad_model <- glm(is_home_run ~ launch_angle + I(launch_angle^2), 
+                  family = binomial, 
+                  data = pitch_data)
+summary(quad_model)
+
+```
+Comparing the two model's AIC values, we determine that the quadratic mdoel is better as it has a lower AIC value. Now, we can graph the quadratic model probabilities: 
+
+```{r}
+launch_angle_seq <- seq(min(pitch_data_filtered$launch_angle), 
+                        max(pitch_data_filtered$launch_angle), 
+                        length.out = 300)
+
+predicted_data <- data.frame(launch_angle = launch_angle_seq)
+
+predicted_data$predicted_prob <- predict(quad_model, 
+                                         newdata = predicted_data, 
+                                         type = "response")
+ggplot(pitch_data_filtered, aes(x = launch_angle, y = is_home_run)) +
+  geom_line(data = predicted_data, aes(x = launch_angle, y = predicted_prob), color = "lightblue", size = 1) +
+  labs(
+    title = "Probability of Home Run vs. Launch Angle",
+    x = "Launch Angle (degrees)",
+    y = "Predicted Probability of Home Run"
+  )
+```
+From the graph above, we see that the relationship follows a bell-shaped curve, where the probability of hitting a home run increases up until about 30 degrees, and then decreases as the launch angle becomes higher. This suggests that there is an optimal launch angle range to hit a home run; a quadratic regression model explains this non-linear relationship well. We can also find the "best" angle according to this model by finding the peak value: 
+```{r}
+coef_quad <- coef(quad_model)
+peak_launch_angle <- -coef_quad["launch_angle"] / (2 * coef_quad["I(launch_angle^2)"])
+peak_launch_angle
+```
+So the best angle according to our model is 29.57494 degrees. 
 
 ### Hit location
 
