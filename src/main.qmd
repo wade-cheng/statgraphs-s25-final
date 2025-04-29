@@ -61,6 +61,8 @@ Each observation has twenty-five variables. We analyzed the subset below:
 - bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)
 - is_home_run: binary encoding of home runs
 
+Please note that there is a more extensive description of each variable in the appendix.
+
 With these variables, we aimed to investigate anything that might help a team
 win a game of baseball, with special focus on ball bearing, inning number,
 launch angle, and hit location. In particular, we studied the relationship
@@ -171,17 +173,21 @@ land can again be used to place players on the field to intercept balls.
 
 ### Inning
 
-Inning affects pitching and batting gameplay.
+Nine innings in baseball seems like doing the same thing nine times, but
+pitchers and batters do not necessarily perform the same across each inning.
+Here, we investigate how the inning affects game performance. We use pitch type
+to focus on pitching and batted ball type to focus on batters.
 
 ```{r, echo = FALSE}
-# elina original graph
-bb_train_edit <- baseball |>
-  select(inning, pitch_name, bb_type) |>
+# filtering
+bb_train_inning <- baseball |>
+  select(inning, pitch_name, bb_type, is_home_run, outs_when_up) |>
   filter(!is.na(inning), !is.na(pitch_name), !is.na(bb_type),
+         !is.na(is_home_run), !is.na(outs_when_up),
          !(inning == "10"), !(inning == "11"),
          !(inning == "12"), !(inning == "13"))
-bb_train_edit$pitch_name_grouped = 
-  bb_train_edit$pitch_name |> 
+bb_train_inning$pitch_name_grouped = 
+  bb_train_inning$pitch_name |> 
   forcats::fct_recode("Fastball" = "4-Seam Fastball",
                       "Fastball" = "Cutter",
                       "Fastball" = "Forkball",
@@ -191,19 +197,25 @@ bb_train_edit$pitch_name_grouped =
                       "Breaking ball" = "Knuckle Curve",
                       "Breaking ball" = "Slider",
                       "Changeup" = "Changeup")
-bb_train_edit$bb_type_renamed = 
-  bb_train_edit$bb_type |> 
+bb_train_inning$bb_type_renamed = 
+  bb_train_inning$bb_type |> 
   forcats::fct_recode("Fly ball" = "fly_ball",
                       "Ground ball" = "ground_ball",
                       "Line drive" = "line_drive",
-                      "Popup" = "popup")
-bb_train_edit |>
+                      "Popup" = "popup") |>
+  forcats::fct_relevel("Popup",
+                      "Fly ball",
+                      "Line drive",
+                      "Ground ball")
+
+# first graph
+bb_train_inning |>
   ggplot(aes(x = inning)) +
   geom_density(aes(color = pitch_name_grouped)) +
   scale_color_manual(values = c("gold", "royalblue", "purple")) +
   scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
   facet_grid(~ bb_type_renamed) +
-  labs(title = "Facetted Density Graphs of Batted Ball Type by Pitch Type",
+  labs(title = "Facetted Density Graphs of Batted Ball Type per Inning by Pitch Type",
        x = "Inning",
        y = "Density",
        color = "Pitch type",
@@ -212,6 +224,56 @@ bb_train_edit |>
         plot.caption.position = "plot")
 ```
 
+This plot, facetted by batted ball type with separate lines for each pitch type,
+tells us which types of pitches are pitched at what point in the game, and the
+resultant type of ball. Fastballs are far more common towards the beginning of
+the game, usually hit into fly balls, line drives, or ground balls. More
+noticably, changeups are incredibly common in the third and fourth innings,
+usually the second time a batter is up to bat. As the starting pitcher is
+usually still on the mound, it indicates that they are varying the pitch they 
+throw to their advantage, as it usually ends up in popups or ground balls. On
+the batting side, popups and ground balls tend to advance runners that have made
+it on base due to successful fly balls and line drives earlier on. Breaking
+balls begin to appear more often in the fifth and sixth innings. At this point,
+it may be a batter's third time up to bat, so a new pitch type is ideal. On the
+other hand, this is when starting pitchers tend to tire out and throw slower
+pitches. There is also a spike in fastballs hit into ground balls in the sixth
+and seventh innings which may indicate when relief pitchers enter the game. At
+the eighth and ninth innings, there are far fewer pitches because of incomplete
+games due to weather or the home team winning, causing the bottom ninth inning
+to remain unplayed.
+
+This analysis is informative to how inning affects game performance. Earlier on,
+pitchers can pitch straighter and with more speed, whereas in the late game,
+they need to think more strategically and use a greater variety of pitches. On
+the batting side, batters tend to prioritize getting on base with more powerful
+hits, then advancing their runners with sacrifice hits. Thus, we can see if
+there is a larger proportion of home runs around innings 3 to 5 where there is
+the greatest concentration of fly balls and line drives. We can also investigate
+the number of outs when a batter arrives at the plate to evaluate how pressure
+across innings affects game performance.
+
+```{r, echo = FALSE}
+bb_train_inning |>
+  ggplot(aes(x = inning, y = outs_when_up)) +
+  geom_point(aes(color = is_home_run), alpha = 0.5, size = 5) +
+  scale_color_gradient(low = "yellow", high = "black") +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  scale_y_continuous(breaks = c(0, 1, 2)) +
+  labs(title = "Scatterplot of Outs At Bat per Inning by Home Run",
+       x = "Inning",
+       y = "Outs At Bat",
+       color = "Is Home Run?") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+With this scatterplot, contrary to expectation, there does not appear to be a
+higher proportion of home runs from innings 3 to 5. Rather, in decreasing order,
+there appears to be a higher proportion of home runs with 1 out at inning 8, 1
+out at inning 9, 0 outs at inning 6, 2 outs at inning 7, 1 out at inning 2, and
+1 out at inning 4. The high proportions with 1 out at innings 8 and 9 seem to
+suggest that high pressure---the end of the game---improves batter performance.
+Nothing can be said for pitching performance from this graph.
 
 ### Launch angle
 
@@ -446,5 +508,19 @@ Future directions regarding launch angles can be focused towards finding better 
 Future work on the relationship between where a pitched ball crosses the home plate and batting performance should be focused on the handedness of batters. Moreover, in both of the graphics relating to this question, we found that handedness had the potential to provide more information, but were unable to yield results due to lack of sufficient data. Future research could be done into park characteristics of more baseball fields, as the walls of some parks are shorter than others in certain regions. This relationship was not explored within the analysis due to the fact that we lacked sufficient data, as the dataset only included MLB parks. A critical first step in doing so would be to expand the dataset to include other nations that play frequent amounts of baseball, such as South Korea, Cuba, and Japan. Inclusion of such players could broaden our analysis and educate us on if our findings are exclusive to the MLB or more indicative of the sport of baseball as a whole.
 
 ## Appendix
+
+- inning: inning number within game; In a typical baseball game, there are 9 innings where the home team fields in the top-half-inning and bats in the bottom-half-inning. However, if the home team is winning at the middle of the 9th inning, then the bottom-half-inning is not played. This is why there are far fewer observations in the 9th inning. If the score is tied at the end of the 9th inning, then extra innings are played. This dataset includes observations up to the 13th inning.
+- outs_when_up: current number of outs; There are three outs in each half-inning, so the number of outs when a batter is up to bat is expressed as 0, 1, or 2.
+- is_pitcher_lefty: binary encoding of left-handed pitchers; A left-handed pitcher is expressed with a 1 while a right-handed pitcher is expressed with a 0. As the dataset includes unlabelled switch pitchers (such as Pat Venditte), their encoding is based on the particular pitch thrown. 
+- is_batter_lefty: binary encoding of left-handed batters; A left-handed batter is expressed with a 1 while a right-handed batter is expressed with a 0. As the dataset includes unlabelled switch hitters, their encoding is based on the particular pitch thrown. It is interesting to note that switch hitter Francisco Lindor batter opposite the pitcher, and all of his homeruns were scored as a lefty batter.
+- pitch_name: name of pitch type thrown; This dataset includes 9 pitch types which were grouped into fastballs (4-seam fastball, cutter, forkball, sinker, split-finger), breaking balls (curveball, knuckle curve, slider), and changeups (changeup). In general, fastballs are fast and straight, breaking balls are slower and curve, and changeups are slower fastballs, so they drop more.
+- pitch_mph: speed of pitched ball (miles per hour); Pitches in this dataset range from 70.0 to 102.8 mph. Pitch speed is heavily correlated with pitch type.
+- plate_x: ball position left (-) or right (+) of center plate (feet); Horizontal ball position ranges from 2.06 feet left of center to 2.20 feet right of center.
+- plate_z: ball position above home plate (feet); Vertical ball position ranges from -0.14 to 4.74 feet above the plate. We suspect the singular negative value is the result of an estimation error with a ball-tracking system such as Hawk-Eye.
+- launch_speed: speed of ball leaving the bat (miles per hour); Batted ball launch speed is measured shortly after contact and ranges from 7.5 to 118.4 mph. We suspect the lower values are due to bunts or unfortunate fair tips.
+- launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal); Batted ball launch angle ranges from -89 to 90 degrees from the horizontal.
+- bb_type: batted ball type classification; This dataset includes 4 batted ball types: popups, fly balls, line drives, and ground balls. In general, popups pop up in the infield, fly balls fly into the outfield, line drives travel straighter and flatter, and ground balls are batted into the ground and bounce or roll. Batted ball type is heavily correlated with launch angle and whether or not a batted ball is a homerun.
+- bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field); Bearing expresses whether a batted ball travels to the left, center, or right of the field. This is regardless of batter handedness.
+- is_home_run: binary encoding of home runs; A home run is expressed as a 1 while a batted ball that is not a home run is expressed as a 0.
 
 ![Jaihao is Kermit](./media/kermit.png)
