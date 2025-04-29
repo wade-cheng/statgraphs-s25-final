@@ -129,16 +129,35 @@ rasterImage(png::readPNG("media/Wii_pitcher_righth.png"), xleft=0.3, ybottom=0.7
 
 Inning affects pitching and batting gameplay.
 
-```{r}
-# new graph; this was my presentation graph
+```{r, echo = FALSE}
+# elina original graph
+bb_train_edit <- baseball |>
+  select(inning, pitch_name, bb_type) |>
+  filter(!is.na(inning), !is.na(pitch_name), !is.na(bb_type),
+         !(inning == "10"), !(inning == "11"),
+         !(inning == "12"), !(inning == "13"))
+bb_train_edit$pitch_name_grouped = 
+  bb_train_edit$pitch_name |> 
+  forcats::fct_recode("Fastball" = "4-Seam Fastball",
+                      "Fastball" = "Cutter",
+                      "Fastball" = "Forkball",
+                      "Fastball" = "Sinker",
+                      "Fastball" = "Split-Finger",
+                      "Breaking ball" = "Curveball",
+                      "Breaking ball" = "Knuckle Curve",
+                      "Breaking ball" = "Slider",
+                      "Changeup" = "Changeup")
+bb_train_edit$bb_type_renamed = 
+  bb_train_edit$bb_type |> 
+  forcats::fct_recode("Fly ball" = "fly_ball",
+                      "Ground ball" = "ground_ball",
+                      "Line drive" = "line_drive",
+                      "Popup" = "popup")
 bb_train_edit |>
   ggplot(aes(x = inning)) +
   geom_density(aes(color = pitch_name_grouped)) +
   scale_color_manual(values = c("gold", "royalblue", "purple")) +
   scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
-  # geom_vline(xintercept = 1, color = "gold3") +
-  # geom_vline(xintercept = 4, color = "royalblue3") +
-  # geom_vline(xintercept = 6, color = "purple3") +
   facet_grid(~ bb_type_renamed) +
   labs(title = "Facetted Density Graphs of Batted Ball Type by Pitch Type",
        x = "Inning",
