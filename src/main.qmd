@@ -20,31 +20,32 @@ authors:
 library(tidyverse)
 library(viridis)
 library(BSDA)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ```
 
 
 ```{r, include=FALSE}
 baseball <- read_csv("train.csv", col_types="iDfffcciiffffffiiiidddddf")
-lockBinding("baseball", globalenv()) # make baseball immutable
+park_dim <- read_csv("park_dimensions.csv")
+#lockBinding("baseball", globalenv()) # make baseball immutable
 ```
 
 ## Introduction
 
-Baseball, the great American pastime, makes over ten billion dollars year over 
-year [@cohen_2024_mlb], draws millions to stadiums across the nation 
-[@attendence_2023], and is played recreationally at parks and schools every
-single fortnight, or something. After too many times malding at the TV over
-terrible plays or inscrutable ball trajectories, we decided it would be 
-interesting to pick apart some data to reveal more objective insights into this
-popular game.
+Baseball, the great American pastime, makes over ten billion dollars annually
+[@cohen_2024_mlb], draws millions to stadiums across the nation [@attendence_2023],
+and is played recreationally at parks and schools every day. After malding at
+the TV over terrible plays or inscrutable ball trajectories too many times, we
+decided it would be interesting to pick apart real professional league data to
+reveal more objective insights into this popular game.
 
 Our dataset [@jcraggy_2020_baseball] comes from a Kaggle model-creating 
-competition to predict home runs. It has 46,244 recordings that represent each
-batted ball from the 2020 MLB season (which was abbreviated due to COVID---60
-games were played instead of the usual 162). The dataset did include postseason
-games. 
+competition to predict home runs. It has 46,244 observations that represent each
+batted ball from the 2020 MLB season (which was abbreviated due to COVID---the
+regular season included 60 games against 9 opponents instead of the typical 162
+games against 19 or 20 opponents). The dataset also includes post-season games. 
 
-Each recording had twenty-five variables. We analyzed the subset below:
+Each observation has twenty-five variables. We analyzed the subset below:
 
 **TODO: bold variables you use!**
 **This will help us remove items we didn't use, later**
@@ -58,28 +59,27 @@ Each recording had twenty-five variables. We analyzed the subset below:
 - pitcher_name: pitcher's name
 - batter_id: batter's unique identifier
 - pitcher_id: pitcher's unique identifier
-- **is_batter_lefty: binary encoding of left-handed batters**
-- **is_pitcher_lefty: binary encoding of left-handed pitchers**
-- bb_type: batted ball type classification
-- **bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)**
-- pitch_name: name of pitch type thrown
 - park: unique identifier of park venue
-- inning: inning number within game
-- outs_when_up: current number of outs
 - balls: current number of balls
 - strikes: current number of strikes
-- plate_x: ball position left(-) or right(+) of center plate (feet)
-- plate_z: ball position above home plate (feet)
-- pitch_mph: speed of pitched ball (miles per hour)
-- launch_speed: speed of ball leaving the bat (miles per hour)
-- launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)
-- is_home_run: binary encoding of home runs
-
-<!-- NOTE: feel free to change "special focus" if you change your main variable -->
+- **inning: inning number within game**
+- **outs_when_up: current number of outs**
+- **is_pitcher_lefty: binary encoding of left-handed pitchers**
+- **is_batter_lefty: binary encoding of left-handed batters**
+- **pitch_name: name of pitch type thrown**
+- **pitch_mph: speed of pitched ball (miles per hour)**
+- **plate_x: ball position left (-) or right (+) of center plate (feet)**
+- **plate_z: ball position above home plate (feet)**
+- **launch_speed: speed of ball leaving the bat (miles per hour)**
+- **launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)**
+- **bb_type: batted ball type classification**
+- **bearing: horizontal direction classification of ball leaving the bat (i.e. 'left' ball is traveling to the left side of the field)**
+- **is_home_run: binary encoding of home runs**
 
 With these variables, we aimed to investigate anything that might help a team
-win a game of baseball, with special focus on ball bearing, inning number, launch
-angle, and hit location.
+win a game of baseball, with special focus on inning number, hit location,
+launch angle, and ball bearing. In particular, we studied the relationship
+between each of these factors and player performance.
 
 ## Results
 
@@ -129,6 +129,46 @@ rasterImage(png::readPNG("media/Wii_pitcher_righth.png"), xleft=0.3, ybottom=0.7
 ### Inning
 
 Inning affects pitching and batting gameplay.
+
+```{r, echo = FALSE}
+# elina original graph
+bb_train_edit <- baseball |>
+  select(inning, pitch_name, bb_type) |>
+  filter(!is.na(inning), !is.na(pitch_name), !is.na(bb_type),
+         !(inning == "10"), !(inning == "11"),
+         !(inning == "12"), !(inning == "13"))
+bb_train_edit$pitch_name_grouped = 
+  bb_train_edit$pitch_name |> 
+  forcats::fct_recode("Fastball" = "4-Seam Fastball",
+                      "Fastball" = "Cutter",
+                      "Fastball" = "Forkball",
+                      "Fastball" = "Sinker",
+                      "Fastball" = "Split-Finger",
+                      "Breaking ball" = "Curveball",
+                      "Breaking ball" = "Knuckle Curve",
+                      "Breaking ball" = "Slider",
+                      "Changeup" = "Changeup")
+bb_train_edit$bb_type_renamed = 
+  bb_train_edit$bb_type |> 
+  forcats::fct_recode("Fly ball" = "fly_ball",
+                      "Ground ball" = "ground_ball",
+                      "Line drive" = "line_drive",
+                      "Popup" = "popup")
+bb_train_edit |>
+  ggplot(aes(x = inning)) +
+  geom_density(aes(color = pitch_name_grouped)) +
+  scale_color_manual(values = c("gold", "royalblue", "purple")) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9)) +
+  facet_grid(~ bb_type_renamed) +
+  labs(title = "Facetted Density Graphs of Batted Ball Type by Pitch Type",
+       x = "Inning",
+       y = "Density",
+       color = "Pitch type",
+       caption = "Note: Pitch type modes at innings 1, 4, and 6, respectively") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.caption.position = "plot")
+```
+
 
 ### Launch angle
 
@@ -265,9 +305,11 @@ So the best angle according to our model is 29.57494 degrees.
 
 ### Hit location
 
-Home runs are consistently hit in specific locations.
+In Baseball, batters at-bat stand beside the home plate, seeking to hit the pitched ball in order to score "runs." Pitches can wildly differ in terms of behavior, varying in terms of speed and movement. One recorded metric for pitched balls is the point at which they cross the home plate. The position of a ball as it crosses the home plate is especially relevant for batters as it determines where they should swing their bats at. This is also relevant for pitchers, as these areas reflect areas that pitchers should avoid pitching toward to ensure minimized home runs for the opposing team. Thus, the question that we want to analyze is how certain plate positions of pitches affect batting performance.
 
-```{r, echo=FALSE}
+Plate position can be defined in terms of two variables: plate_x and plate_z. Plate_x is the displacement away from the center of the home plate, and plate_z is the displacement above the plate. Both variables are in terms of feet. We wanted to learn where the most common plate locations were for pitches between hits that resulted in home runs compared to those that did not. Hence, the variables we seek to analyze are plate_x, plate_z, and is_home_run. We find the most common plate positions by utilizing a contour plot。
+
+```{r, echo=FALSE, warning = FALSE}
 baseball |>
   ggplot(aes(x = plate_x, y = plate_z)) +
   stat_density2d(aes(fill = after_stat(level)), geom = "polygon") + 
@@ -279,14 +321,56 @@ baseball |>
   theme_bw()
 ```
 
-Graphic 2:
+In this graph, a red line is added at plate_x = 0 in order to show if a pitch is centered or not. For pitches that resulted in home runs, there appears to be a singular mode within the data at around 0.0 feet for plate_x and around 2.2 for plate_z. However, among pitches that resulted in home runs, the results greatly differ. Like seen with the pitches that did not result in home runs, there also appears to be a singular mode within the data, but the density of the mode appears to be far greater. This is reflected within the lighter color of center of the mode, which indicates a greater density of points. Furthermore, unlike the mode for pitches that did not result in a home run, this mode appears to be off-center, as it is centered at around 0.05 feet for plate_x and 2.25 feet for plate_z. This is likely due to the prevalence of right-handed batters within the MLB. Namely, the sweet spot of the bat is off center and to the right for right-handed batters. Contact with the sweet spot is known to dramatically boost batting performance, which should indicate why the mode is off-center. There is also a small portion of the mode that stretches out left and upwards. This might be from home runs that are hit by left-handed batters.
 
-```{r}
+We also wanted to find out how the height of a pitch might affect the batting performance of a batter. Batting performance can be described as variety of metrics that analyze how the ball comes off the bat. In this case, we seek to analyze the speed of balls that come off the bat. However, since higher pitch speeds are likely to result in higher launch speeds of balls, we must control for pitch speed. Thus, we create a new ratio variable called "sp_ratio" which is defined as launch speed/pitch speed. A higher sp_ratio means that the batter hit was more successful as they were able to put in more speed to their hit proportional to the pitch they were given, which means that it will likely be harder to catch in the outfield as well (and potentially result in a home run). We are also curious to see how this differs among left and right-handed batters. Thus, to analyze this, we utilize a scatterplot between pitch_z and sp_ratio, faceted by if the batter is lefty or not. We also add a linear regression trendline to visualize this relationship.
 
+```{r, echo = FALSE, warning = FALSE}
+park_dim$park <- as.factor(park_dim$park)
+altered_bb <- full_join(baseball, park_dim, by = "park")
+altered_bb <- altered_bb |>
+  mutate(sp_ratio = launch_speed/pitch_mph)
+
+bb_data_lefty <- altered_bb |>
+  filter(is_batter_lefty == 1) |>
+  select(- is_batter_lefty)
+bb_data_lefty <- na.omit(bb_data_lefty)
+
+bb_data_righty <- altered_bb |>
+  filter(is_batter_lefty == 0) |>
+  select(- is_batter_lefty)
+bb_data_righty <- na.omit(bb_data_righty)
+
+altered_bb.rm <- na.omit(altered_bb)
+
+l_cor <- round(cor(bb_data_lefty$plate_z, bb_data_lefty$sp_ratio), 5)
+r_cor <- round(cor(bb_data_righty$plate_z, bb_data_righty$sp_ratio), 5)
+t_cor <- round(cor(altered_bb.rm$plate_z, altered_bb.rm$sp_ratio), 5)
+
+labels <- data.frame(
+  is_batter_lefty = c("0", "1"),  # MUST match the original raw values
+  plate_z = c(4, 4),              # x-coordinate for label
+  sp_ratio = c(1.5, 1.5),         # y-coordinate for label
+  label = c(paste("r =", r_cor), paste("r =", l_cor))
+)
+
+# Now fix the plot:
+altered_bb |> 
+  ggplot(aes(x = plate_z, y = sp_ratio)) + 
+  geom_point(alpha = 0.05) + 
+  facet_grid(. ~ fct_recode(is_batter_lefty, "Righty" = "0", "Lefty" = "1")) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") + 
+  geom_text(
+    data = labels,
+    mapping = aes(x = plate_z, y = sp_ratio, label = label),  # <- use variable names, not constants
+    inherit.aes = FALSE,
+    size = 3.5
+  ) +
+  theme_bw() + 
+  labs(title = "Scatterplots of Pitch Height vs. Speed Ratio by Batter Handedness", x = "plate_z (feet)", y = "Speed Ratio", caption = "Speed Ratio is Launch Speed / Pitch Speed")
 ```
 
-
-
+There appears to be a weak negative correlation between the height of a pitch and the resulting speed ratio, indicating that this relationship appears to be the same for both lefty and righty batters. Moreover, the negative relationship appears to be slightly stronger for lefty batters as the Pearson correlation coefficient of -0.07285 has a larger magnitude than the Pearson correlation coefficient among righty batters of -0.05141, but to a nearly negligible degree. This suggests that higher pitches cause worse batting performance, which is likely due to the fact that it is harder for hitters to generate swing speed if the pitch is higher due to the characteristics of a baseball swing. Furthermore, the requirement that catchers be crouched is likely why the correlation coefficients are so low in this relationship. Regardless, pitchers could consider pitching slightly higher to limit batting performance of hitters, thus limiting the possibility of hard-to-get hits or home runs.
 
 ## Discussion
 
