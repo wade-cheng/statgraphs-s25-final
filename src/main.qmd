@@ -371,6 +371,8 @@ There appears to be a weak negative correlation between the height of a pitch an
 
 ## Discussion
 
+From the second research question, we found that there was a relationship between inning and game performance. Moreover, we found that pitchers pitch straighter and with more speed the earlier the inning, which can be seen through the increase in the amount of fastballs in the beginning the game as shown by the first graphic relating to this question. However, in the late game, pitchers need to conserve energy, thinking strategically and utilizing more pitch variety, with changeups and breaking balls appearing more often in later innings. For batters, they prioritize powerful hits to get on base first, then follow that up with a sequence of sacrificial hits. 
+
 From our third research question, we found that pitch speed and launch angle did not correlate with each other, and that pitch speed and home runs did not seem to have a relationship. On the other hand, we found evidence through the scatterplot that launch angle and home runs were correlated. Comparing logistic and quadratic regression, we formed a quadratic relationship to predict home run probability from launch angles. By our model, an angle of about 30 degrees is most optimal, with close to a 30% chance of home run. This model is only generalizable between 10 and 50 degrees, since no home runs occur outside of those launch angles. 
 
 From our fourth research question, we found that home runs were consistently hit in specific locations, and that there was a very marginal negative correlation between plate_z and the speed ratio. Moreover, we also found the modes for the contour plot indicating highest density for home runs was slightly off-center with a portion of the mode stretching left and upwards. The off-centered nature of the mode among pitches resulting in home runs could potentially be due to the behavior of sweet spot contact in increasing the success of home runs and the prevalence of right-handed batters in the MLB. Furthermore, the portion of the mode that stretches left and upwards among pitches resulting in home runs could be due to left-handed pitchers and ball characteristics. 
@@ -379,6 +381,8 @@ On the relationship between plate_z and the speed ratio, despite finding that th
 
 
 ### Future Work
+
+
 
 Future directions regarding launch angles can be focused towards finding better models to predict home runs. Although we created two regression models, logistic and quadratic, we can try looking at other polynomial relationships and include other significant variables to create a more generalizable relationship to predict home runs. Additionally, we can relate launch angles to other variables other than home run for further analysis. 
 
