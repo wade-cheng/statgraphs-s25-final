@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Baseball Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="main_files/libs/clipboard/clipboard.min.js"></script>
+<script src="main_files/libs/quarto-html/quarto.js"></script>
+<script src="main_files/libs/quarto-html/popper.min.js"></script>
+<script src="main_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="main_files/libs/quarto-html/anchor.min.js"></script>
+<link href="main_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="main_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="main_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="main_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="main_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Baseball Analysis</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Elina Lee </p>
+             <p>Wade Cheng </p>
+             <p>Jaihao Wu </p>
+             <p>Leo Yao </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Baseball, the great American pastime, makes over ten billion dollars annually <span class="citation" data-cites="cohen_2024_mlb">(<a href="#ref-cohen_2024_mlb" role="doc-biblioref">Cohen 2024</a>)</span>, draws millions to stadiums across the nation <span class="citation" data-cites="attendence_2023">(<a href="#ref-attendence_2023" role="doc-biblioref">ESPN 2023</a>)</span>, and is played recreationally at parks and schools every day. After malding at the TV over terrible plays or inscrutable ball trajectories too many times, we decided it would be interesting to pick apart real professional league data to reveal more objective insights into this popular game.</p>
+<p>Our dataset <span class="citation" data-cites="jcraggy_2020_baseball">(<a href="#ref-jcraggy_2020_baseball" role="doc-biblioref">jcraggy 2020</a>)</span> comes from a Kaggle model-creating competition to predict home runs. It has 46,244 observations that represent each batted ball from the 2020 MLB season (which was abbreviated due to COVID—the regular season included 60 games against 9 opponents instead of the typical 162 games against 19 or 20 opponents). The dataset also includes post-season games.</p>
+<p>Each observation has twenty-five variables. We analyzed the subset below:</p>
+<ul>
+<li>inning: inning number within game</li>
+<li>outs_when_up: current number of outs</li>
+<li>is_pitcher_lefty: binary encoding of left-handed pitchers</li>
+<li>is_batter_lefty: binary encoding of left-handed batters</li>
+<li>pitch_name: name of pitch type thrown</li>
+<li>pitch_mph: speed of pitched ball (miles per hour)</li>
+<li>plate_x: ball position left (-) or right (+) of center plate (feet)</li>
+<li>plate_z: ball position above home plate (feet)</li>
+<li>launch_angle: vertical angle of ball leaving the bat (degrees relative to horizontal)</li>
+<li>bb_type: batted ball type classification</li>
+<li>bearing: horizontal direction classification of ball leaving the bat (i.e.&nbsp;‘left’ ball is traveling to the left side of the field)</li>
+<li>is_home_run: binary encoding of home runs</li>
+</ul>
+<p>With these variables, we aimed to investigate anything that might help a team win a game of baseball, with special focus on ball bearing, inning number, launch angle, and hit location. In particular, we studied the relationship between each of these factors and player performance.</p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<section id="bearing" class="level3">
+<h3 class="anchored" data-anchor-id="bearing">Bearing</h3>
+<p>One facet of baseball is the bearing of a batted ball. Our dataset records balls as being hit into the left, center or right sides of the field. What informs where they might fall? We first investigate the left and right-handedness of batters and pitchers, because this variable is naturally associated with the left and right sides of play.</p>
+<p>We note that in our data, 57.89% of batters are right-handed and 72.66% of pitchers are right-handed. We have a reasonably large sample of every subgroup.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We find that there is not much of a correlation between pitcher handedness and bearing—we may only say that right handed pitchers are more likely to serve balls hit to their right, onto the left side of the field. Batter handedness is more interesting. Right handed batters are more likely to hit balls to left field, and left handed batters are more likely to hit balls to center and right field.</p>
+<p>This discrepancy might be justified by how far away pitchers are from the batter’s box. Any differences in angles caused by handedness might be normalized by the distance a ball has to travel. On the other hand, pitcher analysis might yield more insights after splitting the data more. That is, an analysis on bearing based on the four pitcher-batter combinations might give pitcher handedness meaning.</p>
+<p>The batter handedness is the more interesting data. Because of how differently handed batters stand, we conclude that batters generally hit balls early rather than late, causing the balls to fly to opposite field. This has an impact on how teams should place players on the field to intercept balls.</p>
+<p>We also want to know how pitch speed can correlate with bearing. We know from our above analysis that batter handedness correlates with significant differences in bearing, so we should facet this analysis over batter handedness as well. In summary, we plot pitch speed by bearing, faceted by the batter’s handedness.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Indeed, we see differences by batter handedness. For right handed batters, as pitch speed tends around the higher mode, the ball tends to go to right field. Also, as the pitch speed tends around the slower mode, the ball tends to go to left field. This is mirrored for left handed batters.</p>
+<p>Since slower balls are correlated with opposite field and faster with same field, we can conclude that slower balls arrive to the bat earlier and are hit earlier, leading to landing in the batter’s opposite field. This systematic consistency in where balls land can again be used to place players on the field to intercept balls.</p>
+</section>
+<section id="inning" class="level3">
+<h3 class="anchored" data-anchor-id="inning">Inning</h3>
+<p>Inning affects pitching and batting gameplay.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="launch-angle" class="level3">
+<h3 class="anchored" data-anchor-id="launch-angle">Launch angle</h3>
+<p>Some variables we want to explore further are launch angle and pitch speed in relation to game performance. In this section, we ask if launch angle and pitch speed correlate with each other, and what ways do they affect if a batted ball was a home run?</p>
+<p>To investigate these possible relationships, we first clean the baseball data to remove null values from pitch speed and launch angles. Then, we created a scatteplot between pitch speed (mph) and launch angles (degrees), colored by if a batted ball was a home run or not:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see that home run balls appear to occur across all pitch speeds, not limited to certain ranges, whereas launch angles distinctly appear to have a specific range of values where home runs occur. The blue and orange lines represent the median values of pitch speed and launch angles respectively for home runs. We can compare these values with the overall median values of all the batted balls below:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>overall_medians <span class="ot">&lt;-</span> pitch_data <span class="sc">|&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_launch_angle =</span> <span class="fu">median</span>(launch_angle),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_pitch_speed =</span> <span class="fu">median</span>(pitch_mph)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>overall_medians<span class="sc">$</span>median_launch_angle</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 13</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>overall_medians<span class="sc">$</span>median_pitch_speed</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 89.8</code></pre>
+</div>
+</div>
+<p>We see that the overall pitch speed median is extremely close to the median pitch speed for home runs, which makes sense since we did not find an obvious interval where home runs occur more for pitch speed. However, we find the value for overall median launch angle to be 13, which is much further than the median value of 28 for launch speed for home runs. Furthermore, a relatively horizontal linear trend indicates that pitch speed and launch angle do not seem to correlate with each other. As a result, we may want to dive deeper into the relationship between launch angles and home runs.</p>
+<p>We can confirm whether launch angle is normal by looking at its Q-Q plot:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(pitch_data<span class="sc">$</span>launch_angle, <span class="at">main =</span> <span class="st">"Q-Q Plot of Launch Angles"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(pitch_data<span class="sc">$</span>launch_angle, <span class="at">col =</span> <span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We find the the Q-Q plot for launch angles is S-shaped, and deviates at the ends of the line, which suggests heavy outliers that don’t conform to the normal distribution. As a result, we confirm that the distribution for launch angle is not normal.</p>
+<p>Then, we cannot use a t test to check the mean values between overall batted balls and home run batted balls. However, since our sample size is so large, by the central limit theorem we can claim that the means will be approximately normal; then we can use a z test as opposed to a t test. Below we manually calculate the z test between home run launch angles and non-home run launch angles:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>home_run_data <span class="ot">&lt;-</span> pitch_data <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(is_home_run <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>non_home_run_data <span class="ot">&lt;-</span> pitch_data <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(is_home_run <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">z.test</span>(<span class="at">x =</span> home_run_data<span class="sc">$</span>launch_angle,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> non_home_run_data<span class="sc">$</span>launch_angle,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">alternative =</span> <span class="st">"two.sided"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">mu =</span> <span class="dv">0</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">sigma.x =</span> <span class="fu">sd</span>(home_run_data<span class="sc">$</span>launch_angle),</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">sigma.y =</span> <span class="fu">sd</span>(non_home_run_data<span class="sc">$</span>launch_angle))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Two-sample z-Test
+
+data:  home_run_data$launch_angle and non_home_run_data$launch_angle
+z = 84.986, p-value &lt; 2.2e-16
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 16.8978 17.6956
+sample estimates:
+mean of x mean of y 
+ 28.86091  11.56422 </code></pre>
+</div>
+</div>
+<p>The results of the two-sample z-test here reveal a statistically significant difference in mean launch angles between home run and non-home run batted balls (p-value &lt; 2.2e-16). Specifically, the mean launch angle for home runs is significantly higher than for non-home runs. This suggests that launch angle plays a critical role in determining whether a batted ball results in a home run. Therefore, we can conclude that launch angle is an important factor for predicting home run outcomes in baseball.</p>
+<p>To further explore the relationship between launch angle and the likelihood of a home run, we can fit a logistic regression model. This model predicts the probability of a home run as a function of the launch angle, and it makes sense given home run is a binary variable. However, given that only a select portion of angles have home runs within them, we can consider a quadratic regression (the probability of home run increases, then decreases). Below are the summary for each regression model:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(home_run_data<span class="sc">$</span>launch_angle)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 11</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(home_run_data<span class="sc">$</span>launch_angle)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 47</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>pitch_data_filtered <span class="ot">&lt;-</span> pitch_data <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(is_home_run)) <span class="sc">|&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(launch_angle <span class="sc">&gt;=</span> <span class="dv">10</span> <span class="sc">&amp;</span> launch_angle <span class="sc">&lt;=</span> <span class="dv">50</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>glm.out <span class="ot">&lt;-</span> <span class="fu">glm</span>(is_home_run <span class="sc">~</span> launch_angle, <span class="at">data =</span> pitch_data_filtered, <span class="at">family =</span> binomial)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glm.out)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = is_home_run ~ launch_angle, family = binomial, 
+    data = pitch_data_filtered)
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)  -2.622800   0.068893 -38.071   &lt;2e-16 ***
+launch_angle  0.020920   0.002249   9.303   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 11306  on 15889  degrees of freedom
+Residual deviance: 11220  on 15888  degrees of freedom
+AIC: 11224
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>quad_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(is_home_run <span class="sc">~</span> launch_angle <span class="sc">+</span> <span class="fu">I</span>(launch_angle<span class="sc">^</span><span class="dv">2</span>), </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">family =</span> binomial, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> pitch_data)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(quad_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = is_home_run ~ launch_angle + I(launch_angle^2), 
+    family = binomial, data = pitch_data)
+
+Coefficients:
+                    Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)       -1.787e+01  5.518e-01  -32.38   &lt;2e-16 ***
+launch_angle       1.153e+00  3.868e-02   29.80   &lt;2e-16 ***
+I(launch_angle^2) -1.949e-02  6.649e-04  -29.32   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 14241  on 34458  degrees of freedom
+Residual deviance:  9075  on 34456  degrees of freedom
+AIC: 9081
+
+Number of Fisher Scoring iterations: 12</code></pre>
+</div>
+</div>
+<p>Comparing the two model’s AIC values, we determine that the quadratic mdoel is better as it has a lower AIC value. Now, we can graph the quadratic model probabilities:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>launch_angle_seq <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(pitch_data_filtered<span class="sc">$</span>launch_angle), </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">max</span>(pitch_data_filtered<span class="sc">$</span>launch_angle), </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">length.out =</span> <span class="dv">300</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>predicted_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">launch_angle =</span> launch_angle_seq)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>predicted_data<span class="sc">$</span>predicted_prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(quad_model, </span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">newdata =</span> predicted_data, </span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pitch_data_filtered, <span class="fu">aes</span>(<span class="at">x =</span> launch_angle, <span class="at">y =</span> is_home_run)) <span class="sc">+</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> predicted_data, <span class="fu">aes</span>(<span class="at">x =</span> launch_angle, <span class="at">y =</span> predicted_prob), <span class="at">color =</span> <span class="st">"lightblue"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Probability of Home Run vs. Launch Angle"</span>,</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Launch Angle (degrees)"</span>,</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Predicted Probability of Home Run"</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>From the graph above, we see that the relationship follows a bell-shaped curve, where the probability of hitting a home run increases up until about 30 degrees, and then decreases as the launch angle becomes higher. This suggests that there is an optimal launch angle range to hit a home run; a quadratic regression model explains this non-linear relationship well. We can also find the “best” angle according to this model by finding the peak value:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>coef_quad <span class="ot">&lt;-</span> <span class="fu">coef</span>(quad_model)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>peak_launch_angle <span class="ot">&lt;-</span> <span class="sc">-</span>coef_quad[<span class="st">"launch_angle"</span>] <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> coef_quad[<span class="st">"I(launch_angle^2)"</span>])</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>peak_launch_angle</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>launch_angle 
+    29.57494 </code></pre>
+</div>
+</div>
+<p>So the best angle according to our model is 29.57494 degrees.</p>
+</section>
+<section id="hit-location" class="level3">
+<h3 class="anchored" data-anchor-id="hit-location">Hit location</h3>
+<p>In Baseball, batters at-bat stand beside the home plate, seeking to hit the pitched ball in order to score “runs.” Pitches can wildly differ in terms of behavior, varying in terms of speed and movement. One recorded metric for pitched balls is the point at which they cross the home plate. The position of a ball as it crosses the home plate is especially relevant for batters as it determines where they should swing their bats at. This is also relevant for pitchers, as these areas reflect areas that pitchers should avoid pitching toward to ensure minimized home runs for the opposing team. Thus, the question that we want to analyze is how certain plate positions of pitches affect batting performance.</p>
+<p>Plate position can be defined in terms of two variables: plate_x and plate_z. Plate_x is the displacement away from the center of the home plate, and plate_z is the displacement above the plate. Both variables are in terms of feet. We wanted to learn where the most common plate locations were for pitches between hits that resulted in home runs compared to those that did not. Hence, the variables we seek to analyze are plate_x, plate_z, and is_home_run. We find the most common plate positions by utilizing a contour plot。</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In this graph, a red line is added at plate_x = 0 in order to show if a pitch is centered or not. For pitches that resulted in home runs, there appears to be a singular mode within the data at around 0.0 feet for plate_x and around 2.2 for plate_z. However, among pitches that resulted in home runs, the results greatly differ. Like seen with the pitches that did not result in home runs, there also appears to be a singular mode within the data, but the density of the mode appears to be far greater. This is reflected within the lighter color of center of the mode, which indicates a greater density of points. Furthermore, unlike the mode for pitches that did not result in a home run, this mode appears to be off-center, as it is centered at around 0.05 feet for plate_x and 2.25 feet for plate_z. This is likely due to the prevalence of right-handed batters within the MLB. Namely, the sweet spot of the bat is off center and to the right for right-handed batters. Contact with the sweet spot is known to dramatically boost batting performance, which should indicate why the mode is off-center. There is also a small portion of the mode that stretches out left and upwards. This might be from home runs that are hit by left-handed batters.</p>
+<p>We also wanted to find out how the height of a pitch might affect the batting performance of a batter. Batting performance can be described as variety of metrics that analyze how the ball comes off the bat. In this case, we seek to analyze the speed of balls that come off the bat. However, since higher pitch speeds are likely to result in higher launch speeds of balls, we must control for pitch speed. Thus, we create a new ratio variable called “sp_ratio” which is defined as launch speed/pitch speed. A higher sp_ratio means that the batter hit was more successful as they were able to put in more speed to their hit proportional to the pitch they were given, which means that it will likely be harder to catch in the outfield as well (and potentially result in a home run). We are also curious to see how this differs among left and right-handed batters. Thus, to analyze this, we utilize a scatterplot between pitch_z and sp_ratio, faceted by if the batter is lefty or not. We also add a linear regression trendline to visualize this relationship.</p>
+<p>Firstly, we validate our desire to look into lefty and righty batters by analyzing if their distribution of plate_z is different to each other. To find out, we shall perform a two-sample Kolmogorov-Smirnov Test. In particular, we shall analyze if the distribution of pitch_z is the same among both.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>park_dim<span class="sc">$</span>park <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(park_dim<span class="sc">$</span>park)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>altered_bb <span class="ot">&lt;-</span> <span class="fu">full_join</span>(baseball, park_dim, <span class="at">by =</span> <span class="st">"park"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>altered_bb <span class="ot">&lt;-</span> altered_bb <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sp_ratio =</span> launch_speed<span class="sc">/</span>pitch_mph)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>altered_bb.rm <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(altered_bb)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>bb_data_lefty <span class="ot">&lt;-</span> altered_bb <span class="sc">|&gt;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(is_batter_lefty <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span> is_batter_lefty)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>bb_data_lefty <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(bb_data_lefty)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>bb_data_righty <span class="ot">&lt;-</span> altered_bb <span class="sc">|&gt;</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(is_batter_lefty <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span> is_batter_lefty)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>bb_data_righty <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(bb_data_righty)</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ks.test</span>(<span class="at">x =</span> bb_data_lefty<span class="sc">$</span>plate_z, <span class="at">y =</span> bb_data_righty<span class="sc">$</span>plate_z)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Asymptotic two-sample Kolmogorov-Smirnov test
+
+data:  bb_data_lefty$plate_z and bb_data_righty$plate_z
+D = 0.019483, p-value = 0.0167
+alternative hypothesis: two-sided</code></pre>
+</div>
+</div>
+<p>Since the p-value of the Kolmogorov-Smirnov test is less than our alpha of 0.05, we have sufficient evidence to reject the null hypothesis. Therefore, we can conclude that the means are not equal. Thus, there might be a difference among lefty and righty batters in this regard. Thus, we proceed to our analyzed relationship of plate_z compared to sp_ratio below between lefty and righty batters.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>There appears to be a weak negative correlation between the height of a pitch and the resulting speed ratio, indicating that this relationship appears to be the same for both lefty and righty batters. Moreover, the negative relationship appears to be slightly stronger for lefty batters as the Pearson correlation coefficient of -0.07285 has a larger magnitude than the Pearson correlation coefficient among righty batters of -0.05141, but to a nearly negligible degree. This suggests that higher pitches cause worse batting performance, which is likely due to the fact that it is harder for hitters to generate swing speed if the pitch is higher due to the characteristics of a baseball swing. Furthermore, the requirement that catchers be crouched is likely why the correlation coefficients are so low in this relationship. Regardless, pitchers could consider pitching slightly higher to limit batting performance of hitters, thus limiting the possibility of hard-to-get hits or home runs.</p>
+</section>
+</section>
+<section id="discussion" class="level2">
+<h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
+<p>From the second research question, we found that there was a relationship between inning and game performance. Moreover, we found that pitchers pitch straighter and with more speed the earlier the inning, which can be seen through the increase in the amount of fastballs in the beginning the game as shown by the first graphic relating to this question. However, in the late game, pitchers need to conserve energy, thinking strategically and utilizing more pitch variety, with changeups and breaking balls appearing more often in later innings. For batters, they prioritize powerful hits to get on base first, then follow that up with a sequence of sacrificial hits.</p>
+<p>From our third research question, we found that pitch speed and launch angle did not correlate with each other, and that pitch speed and home runs did not seem to have a relationship. On the other hand, we found evidence through the scatterplot that launch angle and home runs were correlated. Comparing logistic and quadratic regression, we formed a quadratic relationship to predict home run probability from launch angles. By our model, an angle of about 30 degrees is most optimal, with close to a 30% chance of home run. This model is only generalizable between 10 and 50 degrees, since no home runs occur outside of those launch angles.</p>
+<p>From our fourth research question, we found that home runs were consistently hit in specific locations, and that there was a very marginal negative correlation between plate_z and the speed ratio. Moreover, we also found the modes for the contour plot indicating highest density for home runs was slightly off-center with a portion of the mode stretching left and upwards. The off-centered nature of the mode among pitches resulting in home runs could potentially be due to the behavior of sweet spot contact in increasing the success of home runs and the prevalence of right-handed batters in the MLB. Furthermore, the portion of the mode that stretches left and upwards among pitches resulting in home runs could be due to left-handed pitchers and ball characteristics.</p>
+<p>On the relationship between plate_z and the speed ratio, despite finding that the distributions of plate_z differed between left-handed and right-handed batters, we did not find a large difference in the relationship between plate_z and the speed ratio. This negative correlation could be due to the fact that it is harder to generate swing speed when balls are higher, thus generating less power to increase the launch speed and in turn the speed ratio. While our findings suggest that pitchers should pitch slightly higher to minimize resulting launch speed, pitchers also must be cognizant of their catchers who are mandated to stay crouched. Thus, we recommend a minute increase in the height of pitches.</p>
+<section id="future-work" class="level3">
+<h3 class="anchored" data-anchor-id="future-work">Future Work</h3>
+<p>Bearing can be investigated further by consulting deeper knowledge in the sport of baseball, as well as analyzing more variables in more group. This is because different baseball techniques are likely to influence the data in ways that are hard to pick up in statistical analysis. Experienced pitchers might throw different types of pitches that are more likely to cause balls to go in different directions. Batters might bunt the ball or otherwise have techniques that cause balls to behave away from the norm. So, future work should consult those with more expertise in baseball itself, and simply run more analyses.</p>
+<p>Future directions regarding launch angles can be focused towards finding better models to predict home runs. Although we created two regression models, logistic and quadratic, we can try looking at other polynomial relationships and include other significant variables to create a more generalizable relationship to predict home runs. Additionally, we can relate launch angles to other variables other than home run for further analysis.</p>
+<p>Future work on the relationship between where a pitched ball crosses the home plate and batting performance should be focused on the handedness of batters. Moreover, in both of the graphics relating to this question, we found that handedness had the potential to provide more information, but were unable to yield results due to lack of sufficient data. Future research could be done into park characteristics of more baseball fields, as the walls of some parks are shorter than others in certain regions. This relationship was not explored within the analysis due to the fact that we lacked sufficient data, as the dataset only included MLB parks. A critical first step in doing so would be to expand the dataset to include other nations that play frequent amounts of baseball, such as South Korea, Cuba, and Japan. Inclusion of such players could broaden our analysis and educate us on if our findings are exclusive to the MLB or more indicative of the sport of baseball as a whole.</p>
+</section>
+</section>
+<section id="appendix" class="level2">
+<h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./media/kermit.png" class="img-fluid figure-img"></p>
+<figcaption>Jaihao is Kermit</figcaption>
+</figure>
+</div>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-cohen_2024_mlb" class="csl-entry" role="listitem">
+Cohen, Andrew. 2024. Heavy.com. <a href="https://heavy.com/sports/mlb/sets-revenue-record-11-6-billion/">https://heavy.com/sports/mlb/sets-revenue-record-11-6-billion/</a>.
+</div>
+<div id="ref-attendence_2023" class="csl-entry" role="listitem">
+ESPN. 2023. <span>“2023 MLB Attendance - Major League Baseball - ESPN.”</span> ESPN.com. <a href="https://www.espn.com/mlb/attendance">https://www.espn.com/mlb/attendance</a>.
+</div>
+<div id="ref-jcraggy_2020_baseball" class="csl-entry" role="listitem">
+jcraggy. 2020. <span>“Baseball.”</span> Kaggle.com. <a href="https://www.kaggle.com/datasets/jcraggy/baseball?select=train.csv">https://www.kaggle.com/datasets/jcraggy/baseball?select=train.csv</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
