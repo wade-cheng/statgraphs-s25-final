@@ -432,7 +432,7 @@ We also wanted to find out how the height of a pitch might affect the batting pe
 
 Firstly, we validate our desire to look into lefty and righty batters by analyzing if their distribution of plate_z is different to each other. To find out, we shall perform a two-sample Kolmogorov-Smirnov Test. In particular, we shall analyze if the distribution of pitch_z is the same among both.
 
-```{r}
+```{r, echo=FALSE}
 park_dim$park <- as.factor(park_dim$park)
 altered_bb <- full_join(baseball, park_dim, by = "park")
 altered_bb <- altered_bb |>
